@@ -1,0 +1,256 @@
+import dataManagementHelper from "../dataManagementHelper/dataManagementHelper";
+import processingEngineHelper from "../processingEngineHelper/processingEngineHelper";
+
+const triggerIndicatorComputationForMissingTimestamps = async function(){
+    // simple approach
+
+    // get all scripts metadata from data management API
+
+    // for each script metadata
+    // identify targetIndicator and fetch its metadata
+    // identify necessary base indicators and georesources
+    
+    // fetch base indicator and georesource metadata 
+    // compare timestamps and identify missing timestamps according to updateInterval of targetIndicator
+    // trigger computation for each missing timestamp
+    
+    var allScriptsMetadata = await dataManagementHelper.fetchAllScriptsMetadata();
+    var allIndicatorsMetadata = await dataManagementHelper.fetchAllIndicatorsMetadata();
+    var allGeoresourcesMetadata = await dataManagementHelper.fetchAllGeoresourcesMetadata();
+
+
+    for (const scriptMetadata of allScriptsMetadata) {
+        try {
+            console.log("Start process for script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");
+            var targetIndicatorMetadata = dataManagementHelper.getScriptTargetIndicatorMetadata(scriptMetadata, allIndicatorsMetadata);
+            var baseIndicatorsMetadataArray = dataManagementHelper.getScriptBaseIndicatorMetadataArray(scriptMetadata, allIndicatorsMetadata);
+            var georesourcesMetadataArray = dataManagementHelper.getScriptGeoresourceMetadataArray(scriptMetadata, allGeoresourcesMetadata);
+
+            console.log("Found a total number of '" + baseIndicatorsMetadataArray.length + "' baseIndicators");
+            console.log("Found a total number of '" + georesourcesMetadataArray.length + "' georesources");
+            
+            var missingTimestampsForTargetIndicator = identifyMissingTimestampsForTargetIndicator(targetIndicatorMetadata, baseIndicatorsMetadataArray, georesourcesMetadataArray);
+    
+            console.log("Found a total number of '" + missingTimestampsForTargetIndicator.length + "' missing timestamps");
+
+            console.log("Missing timestamp values are:\n " + missingTimestampsForTargetIndicator + "");
+        for (const targetTimestamp of missingTimestampsForTargetIndicator) { 
+            try {
+                console.log("Send indicator computation request for targetDate '" + targetTimestamp + "' and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
+                processingEngineHelper.triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp);    
+            } catch (error) {
+                // repeat request with a time delay?
+                console.error(error);
+            }           
+            
+        }   
+        } catch (error) {
+            console.error(error);
+        } 
+    }
+};
+
+function identifyMissingTimestampsForTargetIndicator(targetIndicatorMetadata, baseIndicatorsMetadataArray, georesourcesMetadataArray){
+    var missingTimestampsArray = [];
+
+    // inspect updateInterval and available timestamps of targetIndicator
+
+    // compare availableTimestamps of targetIndicator to availableTimestamps of baseIndicators and availableTimePeriods of georesources
+    // to find missing timestamps that can be computed on the basis of baseInicators and georesources
+
+    // for baseIndicators the exact same timestamp must be present
+
+    // for georesources there must be a 
+
+    // as STOP goal simply use current date in order to prevent infinite loop for all future timestamps
+
+    // if any base indicator is present then we do not have to inspect georesource time periods
+    if(baseIndicatorsMetadataArray != null && baseIndicatorsMetadataArray != undefined && baseIndicatorsMetadataArray.length > 0){
+        console.log("Finding missing timestamps from base indicators");
+        missingTimestampsArray = findMissingTargetTimestamps_fromBaseIndicators(targetIndicatorMetadata, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray);
+    }    
+    else{
+        console.log("Finding missing timestamps from georesources time periods as there are no base indicators");
+        missingTimestampsArray = findMissingTargetTimestamps_fromGeoresources(targetIndicatorMetadata, existingTargetIndicatorTimestamps, georesourcesMetadataArray);
+    } 
+
+    return missingTimestampsArray;
+    
+}
+
+function findMissingTargetTimestamps_fromBaseIndicators(targetIndicatorMetadata, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray){
+    var missingTimestampsArray = [];
+
+    // CAN BE ARBITRARY|DAILY|WEEKLY|MONTHLY|HALF_YEARLY|YEARLY
+    var updateInterval = targetIndicatorMetadata.metadata.updateInterval;
+
+    // can be null/undefined or empty - otherwise sorted array of "YYYY-MM-DD"
+    var existingTargetIndicatorTimestamps = targetIndicatorMetadata.applicableDates;
+
+    // for base indicators only the exact dates and update interval are relevant
+    if(existingTargetIndicatorTimestamps != undefined && existingTargetIndicatorTimestamps != null && existingTargetIndicatorTimestamps.length > 0){
+        // take first timestamp and find any past and future date according to updateInterval
+
+        var firstExistingTimestamp = existingTargetIndicatorTimestamps[0];
+
+        missingTimestampsArray = appendMissingBaseIndicatorTimestamps_priorToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
+    }
+
+    return missingTimestampsArray;
+    
+}
+
+function findMissingTargetTimestamps_fromGeoresources(targetIndicatorMetadata, existingTargetIndicatorTimestamps, georesourcesMetadataArray){
+    var missingTimestampsArray = [];
+
+    // CAN BE ARBITRARY|DAILY|WEEKLY|MONTHLY|HALF_YEARLY|YEARLY
+    var updateInterval = targetIndicatorMetadata.metadata.updateInterval;
+
+    // can be null/undefined or empty - otherwise array of "YYYY-MM-DD"
+    var existingTargetIndicatorTimestamps = targetIndicatorMetadata.applicableDates;
+
+    // for georesources we must align the updateInterval of targetIndicator and the availablePeriodsOfValidity for georesources
+    if(existingTargetIndicatorTimestamps != undefined && existingTargetIndicatorTimestamps != null && existingTargetIndicatorTimestamps.length > 0){
+        // take first timestamp and find any past and future date according to updateInterval
+
+        var firstExistingTimestamp = existingTargetIndicatorTimestamps[0];
+
+        // missingTimestampsArray = appendMissingGeoresourceTimestamps_priorToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
+        missingTimestampsArray = appendMissingGeoresourceTimestamps_futureToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
+        
+    }
+    else{
+        missingTimestampsArray = createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataArray, updateInterval);
+    }
+
+    return missingTimestampsArray;
+}
+
+function appendMissingGeoresourceTimestamps_futureToReferenceTimestamp(missingTimestampsArray, referenceTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval){
+    // TODO implementation should consider georesources 
+    var nextCandidateTimestamp = getNextFutureTimestampCandidate(referenceTimestamp, updateInterval);
+
+    if(! existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+        missingTimestampsArray.push(nextCandidateTimestamp);
+    }
+
+    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+    while(isValidDate(nextCandidateTimestamp)){
+        if(! existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+            missingTimestampsArray.push(nextCandidateTimestamp);
+        }
+
+        nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+    }
+
+    return missingTimestampsArray;
+}
+        
+
+function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataArray, updateInterval){
+    var timestamps = [];
+
+    for (const georesourceMetadata of georesourcesMetadataArray) {
+
+        // sorted array of 
+        /*
+            {
+                "startDate": "2018-03-01",
+                "endDate": "2018-03-06" // may be null
+            }
+        */
+        var georesource_timePeriods = georesourcesMetadataArray.availablePeriodsOfValidity;
+
+        for (const georesource_timePeriod of georesource_timePeriods) {
+            if (timestamps.length == 0){
+                timestamps.push(georesource_timePeriod.startDate);
+            }
+            else{
+                var nextCandidateTimestamp = getNextFutureTimestampCandidate(timestamps[timestamps.length -1], updateInterval);
+
+                if(!isValidDate(nextCandidateTimestamp)){
+                    console.log("found an invalid next candidate timestamp. Thus abort timestamp search for georesource with id '" + georesourceMetadata.georesourceId + "'");
+                    break;
+                }
+                else{
+                    if (!timestamps.includes(nextCandidateTimestamp)){
+                        timestamps.push(nextCandidateTimestamp);
+                    }
+                }
+            }
+        }
+    }
+
+    return timestamps;
+}
+
+function isValidDate(candidateTimestamp){
+    try {
+        var date = Date.parse(candidateTimestamp);
+        var now = Date.now();
+
+        // for now simply check if candidate is not in the future of current execution
+        if(date > now){
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error("candidateTimestamp value cannot be parsed as Date. Value was: '" + candidateTimestamp + "'");
+        return false;
+    }    
+}
+
+function getNextFutureTimestampCandidate(referenceTimestamp, updateInterval){
+    var date = Date.parse(referenceTimestamp);
+
+    switch (updateInterval) {
+        case "DAILY":
+            date.setDate(date.getDate() + 1);
+            break;
+        case "WEEKLY":
+            date.setDate(date.getDate() + 7);
+            break;   
+        case "MONTHLY":
+            date.setMonth(date.getMonth() + 1);
+            break;  
+        case "QUARTERLY":
+            date.setMonth(date.getMonth() + 3);
+            break;     
+        case "HALF_YEARLY":
+            date.setMonth(date.getMonth() + 6);
+        break;
+        case "YEARLY":
+            date.setFullYear(date.getFullYear() + 1);
+            break;   
+        case "ARBITRARY":
+            console.log("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");
+            break;     
+    
+        default:
+            console.log("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");
+            break;
+    }
+
+    return  formatDateAsString(date);
+}
+
+function formatDateAsString(date){
+    var dateString = "";
+    dateString += date.getFullYear() + "-";
+
+    var month = date.getMonth() + 1;
+    if(month < 10){
+        month = "0" + month;
+    }
+
+    var day = date.getDate() + 1;
+    if(day < 10){
+        day = "0" + day;
+    }
+
+    dateString += month + "-" + day;
+
+    return dateString;
+}
+
+export default triggerIndicatorComputationForMissingTimestamps;
