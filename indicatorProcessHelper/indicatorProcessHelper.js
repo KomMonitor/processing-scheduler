@@ -1,7 +1,13 @@
 const dataManagementHelper = require("../dataManagementHelper/dataManagementHelper");
 const processingEngineHelper = require("../processingEngineHelper/processingEngineHelper");
 
+const TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES = JSON.parse(process.env.TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES);
+
 const triggerIndicatorComputationForMissingTimestamps = async function(){
+
+    if(TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES){
+        console.log("TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES is set to true. Thus, already existing timestamps will be overwritten.");
+    }
     // simple approach
 
     // get all scripts metadata from data management API
@@ -151,8 +157,8 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 // compute timestamps based on updateInterval until latestEndDate is reached
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
-                while(! (new Date(nextCandidateTimestamp) > (new Date(latestGeoresourceEndDate)))){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                while((new Date(nextCandidateTimestamp) < (new Date(latestGeoresourceEndDate)))){
+                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
                     
@@ -166,8 +172,8 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
 
                 var today = new Date(Date.now());
 
-                while((new Date(nextCandidateTimestamp) > today)){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                while((new Date(nextCandidateTimestamp) < today)){
+                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
 
