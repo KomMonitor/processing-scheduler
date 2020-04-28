@@ -1,5 +1,5 @@
-import dataManagementHelper from "../dataManagementHelper/dataManagementHelper";
-import processingEngineHelper from "../processingEngineHelper/processingEngineHelper";
+const dataManagementHelper = require("../dataManagementHelper/dataManagementHelper");
+const processingEngineHelper = require("../processingEngineHelper/processingEngineHelper");
 
 const triggerIndicatorComputationForMissingTimestamps = async function(){
     // simple approach
@@ -63,6 +63,8 @@ function identifyMissingTimestampsForTargetIndicator(targetIndicatorMetadata, ba
     // for georesources there must be a 
 
     // as STOP goal simply use current date in order to prevent infinite loop for all future timestamps
+
+    var existingTargetIndicatorTimestamps = targetIndicatorMetadata.applicableDates;
 
     // if any base indicator is present then we do not have to inspect georesource time periods
     if(baseIndicatorsMetadataArray != null && baseIndicatorsMetadataArray != undefined && baseIndicatorsMetadataArray.length > 0){
@@ -159,7 +161,7 @@ function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataA
                 "endDate": "2018-03-06" // may be null
             }
         */
-        var georesource_timePeriods = georesourcesMetadataArray.availablePeriodsOfValidity;
+        var georesource_timePeriods = georesourceMetadata.availablePeriodsOfValidity;
 
         for (const georesource_timePeriod of georesource_timePeriods) {
             if (timestamps.length == 0){
@@ -201,7 +203,8 @@ function isValidDate(candidateTimestamp){
 }
 
 function getNextFutureTimestampCandidate(referenceTimestamp, updateInterval){
-    var date = Date.parse(referenceTimestamp);
+    // var date = Date.parse(referenceTimestamp);
+    var date = new Date(referenceTimestamp);
 
     switch (updateInterval) {
         case "DAILY":
@@ -253,4 +256,4 @@ function formatDateAsString(date){
     return dateString;
 }
 
-export default triggerIndicatorComputationForMissingTimestamps;
+exports.triggerIndicatorComputationForMissingTimestamps = triggerIndicatorComputationForMissingTimestamps;

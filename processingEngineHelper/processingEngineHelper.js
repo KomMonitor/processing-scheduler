@@ -41,14 +41,14 @@ function buildPostBody(scriptMetadata, targetTimestamp){
     */
 
     var postBody = {
-        "georesourceIds": scriptMetadata.requiredIndicatorIds,
+        "georesourceIds": scriptMetadata.requiredGeoresourceIds,
         "scriptId": scriptMetadata.scriptId,
         "targetDate": targetTimestamp,
         "targetIndicatorId": scriptMetadata.indicatorId,
         "baseIndicatorIds": scriptMetadata.requiredIndicatorIds,
         "defaultProcessProperties": [
         ],
-        "useAggregationForHigherSpatialUnits": process.env.SETTING_AGGREGATE_SPATIAL_UNITS ? process.env.SETTING_AGGREGATE_SPATIAL_UNITS : false
+        "useAggregationForHigherSpatialUnits": process.env.SETTING_AGGREGATE_SPATIAL_UNITS ? JSON.parse(process.env.SETTING_AGGREGATE_SPATIAL_UNITS) : false
       }
 
       for (const parameter of scriptMetadata.variableProcessParameters) {
@@ -67,7 +67,7 @@ function triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp){
 
     var postBody = buildPostBody(scriptMetadata, targetTimestamp);
 
-    return axios.post(kommonitorDataManagementURL + "/process-scripts", postBody)
+    return axios.post(kommonitorProcessingEngineURL + "/script-engine/defaultIndicatorComputation", postBody)
       .then(response => {
         console.log("Triggered job for script with id '" + scriptMetadata.scriptId + "' and timestamp '" + targetTimestamp + "'");
       })

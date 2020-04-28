@@ -1,11 +1,12 @@
-import cron from "node-cron";
-import indicatorProcessHelper from "./indicatorProcessHelper/indicatorProcessHelper";
-
 require('dotenv').config();
 
+// import cron from "node-cron";
+const cron = require("node-cron");
+const indicatorProcessHelper = require("./indicatorProcessHelper/indicatorProcessHelper");
+
 // run every day at 23:00 hours
-cron.schedule("0 23 * * *", () => {
+cron.schedule("*/10 * * * * *", () => {
   console.log(`Begin check to find schedulable indicator processes`);
   
-  triggerIndicatorComputationForMissingTimestamps();
+  indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps();
 });
