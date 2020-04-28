@@ -115,42 +115,18 @@ function findMissingTargetTimestamps_fromGeoresources(targetIndicatorMetadata, e
     if(existingTargetIndicatorTimestamps != undefined && existingTargetIndicatorTimestamps != null && existingTargetIndicatorTimestamps.length > 0){
         // take first timestamp and find any past and future date according to updateInterval
 
-        var firstExistingTimestamp = existingTargetIndicatorTimestamps[0];
-
-        // missingTimestampsArray = appendMissingGeoresourceTimestamps_priorToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
-        missingTimestampsArray = appendMissingGeoresourceTimestamps_futureToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
+        missingTimestampsArray = appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
         
     }
     else{
-        missingTimestampsArray = createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataArray, updateInterval);
-    }
-
-    return missingTimestampsArray;
-}
-
-function appendMissingGeoresourceTimestamps_futureToReferenceTimestamp(missingTimestampsArray, referenceTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval){
-    // TODO implementation should consider georesources 
-    var nextCandidateTimestamp = getNextFutureTimestampCandidate(referenceTimestamp, updateInterval);
-
-    if(! existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
-        missingTimestampsArray.push(nextCandidateTimestamp);
-    }
-
-    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
-    while(isValidDate(nextCandidateTimestamp)){
-        if(! existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
-            missingTimestampsArray.push(nextCandidateTimestamp);
-        }
-
-        nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+        missingTimestampsArray = appendMissingGeoresourceTimestamps(missingTimestampsArray, missingTimestampsArray, georesourcesMetadataArray, updateInterval);
     }
 
     return missingTimestampsArray;
 }
         
 
-function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataArray, updateInterval){
-    var timestamps = [];
+function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval){
 
     for (const georesourceMetadata of georesourcesMetadataArray) {
 
@@ -167,17 +143,17 @@ function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataA
         // may be null to indicate that there is no actual end date, but the feature is valid forever
         var latestGeoresourceEndDate = getLatestGeoresourceEndDate(georesource_timePeriods);
 
-            if (timestamps.length == 0){
-                timestamps.push(earliestGeoresourceStartDate);
+            if (missingTimestampsArray.length == 0){
+                missingTimestampsArray.push(earliestGeoresourceStartDate);
             }
             
             if (latestGeoresourceEndDate != null){
                 // compute timestamps based on updateInterval until latestEndDate is reached
-                var nextCandidateTimestamp = getNextFutureTimestampCandidate(timestamps[timestamps.length -1], updateInterval);
+                var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
                 while(! (new Date(nextCandidateTimestamp) > (new Date(latestGeoresourceEndDate)))){
-                    if (!timestamps.includes(nextCandidateTimestamp)){
-                        timestamps.push(nextCandidateTimestamp);
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                        missingTimestampsArray.push(nextCandidateTimestamp);
                     }
                     
                     nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
@@ -186,13 +162,13 @@ function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataA
             }
             else{
                 // compute timestamps based on updateInterval until current day is reached
-                var nextCandidateTimestamp = getNextFutureTimestampCandidate(timestamps[timestamps.length -1], updateInterval);
+                var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
                 var today = new Date(Date.now());
 
                 while((new Date(nextCandidateTimestamp) > today)){
-                    if (!timestamps.includes(nextCandidateTimestamp)){
-                        timestamps.push(nextCandidateTimestamp);
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                        missingTimestampsArray.push(nextCandidateTimestamp);
                     }
 
                     nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
@@ -201,7 +177,7 @@ function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataA
             }
     }
 
-    return timestamps;
+    return missingTimestampsArray;
 }
 
 function getEarliestGeoresourceStartDate(georesource_timePeriods){
