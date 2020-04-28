@@ -163,44 +163,104 @@ function createInitialIndicatorTimestamps_fromGeoresources(georesourcesMetadataA
         */
         var georesource_timePeriods = georesourceMetadata.availablePeriodsOfValidity;
 
-        for (const georesource_timePeriod of georesource_timePeriods) {
+        var earliestGeoresourceStartDate = getEarliestGeoresourceStartDate(georesource_timePeriods);
+        // may be null to indicate that there is no actual end date, but the feature is valid forever
+        var latestGeoresourceEndDate = getLatestGeoresourceEndDate(georesource_timePeriods);
+
             if (timestamps.length == 0){
-                timestamps.push(georesource_timePeriod.startDate);
+                timestamps.push(earliestGeoresourceStartDate);
             }
-            else{
+            
+            if (latestGeoresourceEndDate != null){
+                // compute timestamps based on updateInterval until latestEndDate is reached
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(timestamps[timestamps.length -1], updateInterval);
 
-                if(!isValidDate(nextCandidateTimestamp)){
-                    console.log("found an invalid next candidate timestamp. Thus abort timestamp search for georesource with id '" + georesourceMetadata.georesourceId + "'");
-                    break;
-                }
-                else{
+                while(! (new Date(nextCandidateTimestamp) > (new Date(latestGeoresourceEndDate)))){
                     if (!timestamps.includes(nextCandidateTimestamp)){
                         timestamps.push(nextCandidateTimestamp);
                     }
+                    
+                    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
                 }
+                
             }
-        }
+            else{
+                // compute timestamps based on updateInterval until current day is reached
+                var nextCandidateTimestamp = getNextFutureTimestampCandidate(timestamps[timestamps.length -1], updateInterval);
+
+                var today = new Date(Date.now());
+
+                while((new Date(nextCandidateTimestamp) > today)){
+                    if (!timestamps.includes(nextCandidateTimestamp)){
+                        timestamps.push(nextCandidateTimestamp);
+                    }
+
+                    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+                }
+
+            }
     }
 
     return timestamps;
 }
 
-function isValidDate(candidateTimestamp){
-    try {
-        var date = Date.parse(candidateTimestamp);
-        var now = Date.now();
-
-        // for now simply check if candidate is not in the future of current execution
-        if(date > now){
-            return false;
+function getEarliestGeoresourceStartDate(georesource_timePeriods){
+    var earliestStartDate;
+    for (const timePeriod of georesource_timePeriods) {
+        if(! earliestStartDate){
+            earliestStartDate = new Date(timePeriod.startDate);
         }
-        return true;
-    } catch (error) {
-        console.error("candidateTimestamp value cannot be parsed as Date. Value was: '" + candidateTimestamp + "'");
-        return false;
-    }    
+        else{
+            var startDateCandidate = new Date (timePeriod.startDate);
+            if(startDateCandidate < earliestStartDate){
+                earliestStartDate = startDateCandidate;
+            } 
+        }
+    }
+
+    return formatDateAsString(earliestStartDate);
 }
+
+function getLatestGeoresourceEndDate(georesource_timePeriods){
+    var latestEndDate;
+    for (const timePeriod of georesource_timePeriods) {
+        if(! latestEndDate){
+            latestEndDate = new Date(timePeriod.endDate);
+        }
+        else{
+            var endDateCandidate = new Date (timePeriod.endDate);
+            if(endDateCandidate > latestEndDate){
+                latestEndDate = endDateCandidate;
+            } 
+        }
+
+        if (latestEndDate === null){
+            break;
+        }
+    }
+
+    if (latestEndDate != null){
+        latestEndDate = formatDateAsString(latestEndDate);
+    }
+
+    return latestEndDate;
+}
+
+// function isValidDate(candidateTimestamp){
+//     try {
+//         var date = Date.parse(candidateTimestamp);
+//         var now = Date.now();
+
+//         // for now simply check if candidate is not in the future of current execution
+//         if(date > now){
+//             return false;
+//         }
+//         return true;
+//     } catch (error) {
+//         console.error("candidateTimestamp value cannot be parsed as Date. Value was: '" + candidateTimestamp + "'");
+//         return false;
+//     }    
+// }
 
 function getNextFutureTimestampCandidate(referenceTimestamp, updateInterval){
     // var date = Date.parse(referenceTimestamp);
@@ -246,7 +306,7 @@ function formatDateAsString(date){
         month = "0" + month;
     }
 
-    var day = date.getDate() + 1;
+    var day = date.getDate();
     if(day < 10){
         day = "0" + day;
     }
