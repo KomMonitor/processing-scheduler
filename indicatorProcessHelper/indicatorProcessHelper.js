@@ -24,8 +24,51 @@ const triggerIndicatorComputationForMissingTimestamps = async function(){
     var allIndicatorsMetadata = await dataManagementHelper.fetchAllIndicatorsMetadata();
     var allGeoresourcesMetadata = await dataManagementHelper.fetchAllGeoresourcesMetadata();
 
+    // first trigger scripts that only require georesources or baseIndicators that are not computed as well
+    var scripts_independentFromOtherScriptIndicators = findScripts_independentFromOtherScriptIndicators(allScriptsMetadata);
+
+    // trigger other scripts (such scripts, that require an indicator that is also computed)
+    var scripts_dependingOnOtherScriptIndicators = allScriptsMetadata.filter(scriptMetadata => {
+        if (scripts_independentFromOtherScriptIndicators.includes(scriptMetadata)){
+            return false;
+        }
+        return true;
+    });
+
+    triggerScriptExecution(scripts_independentFromOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
+    triggerScriptExecution(scripts_dependingOnOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
+};
+
+function findScripts_independentFromOtherScriptIndicators(allScriptsMetadata){
+    var independantScripts = [];
+
+    var computableIndicatorIdMap = new Map();
+    
+    for (const scriptMetadata of allScriptsMetadata) {
+        computableIndicatorIdMap.set(scriptMetadata.indicatorId, scriptMetadata);   
+    }
 
     for (const scriptMetadata of allScriptsMetadata) {
+        var requiredIndicatorIds = scriptMetadata.requiredIndicatorIds;
+        var isIndependentIndicator = true;
+        
+        for (const requiredIndicatorId of requiredIndicatorIds) {
+            if(computableIndicatorIdMap.has(requiredIndicatorId)){
+                isIndependentIndicator = false;
+                break;
+            }   
+        }
+        
+        if(isIndependentIndicator){
+            independantScripts.push(scriptMetadata);
+        }
+    }
+
+    return independantScripts;
+}
+
+function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGeoresourcesMetadata){
+    for (const scriptMetadata of scriptsArray) {
         try {
             console.log("Start process for script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");
             var targetIndicatorMetadata = dataManagementHelper.getScriptTargetIndicatorMetadata(scriptMetadata, allIndicatorsMetadata);
@@ -54,7 +97,7 @@ const triggerIndicatorComputationForMissingTimestamps = async function(){
             console.error(error);
         } 
     }
-};
+}
 
 function identifyMissingTimestampsForTargetIndicator(targetIndicatorMetadata, baseIndicatorsMetadataArray, georesourcesMetadataArray){
     var missingTimestampsArray = [];
