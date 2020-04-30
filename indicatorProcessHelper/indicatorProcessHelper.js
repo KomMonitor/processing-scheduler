@@ -133,35 +133,61 @@ function findMissingTargetTimestamps_fromGeoresources(targetIndicatorMetadata, e
     return missingTimestampsArray;
 }
 
+function findEarliestCommonDate(baseIndicatorsMetadataArray){
+    var earliestCommonDate;
+    for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
+        if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){
+            if (! earliestCommonDate){
+                // the first value is the earliest as it comes sorted from Management API
+                earliestCommonDate = baseIndicatorMetadata.applicableDates[0];
+            }
+            else{
+                if((new Date(earliestCommonDate) < new Date(baseIndicatorMetadata.applicableDates[0]))){
+                    earliestCommonDate = baseIndicatorMetadata.applicableDates[0];
+                }
+            }
+        }
+    }
+
+    return earliestCommonDate;
+}
+
+function findLatestCommonDate(baseIndicatorsMetadataArray){
+    var latestCommonDate;
+    for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
+        if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){
+            if (! latestCommonDate){
+                // the last value is the latest as it comes sorted from Management API
+                latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+            }
+            else{
+                if((new Date(latestCommonDate) > new Date(baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1]))){
+                    latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+                }
+            }
+        }
+    }
+
+    return latestCommonDate;
+}
+
 function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval){
 
-    for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
-
-        // sorted array of 
-        /*
-            "YYYY-MM-DD",
-            "YYYY-MM-DD"
-        */
-       if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){
-        var earliestBaseIndicatorDate = baseIndicatorMetadata.applicableDates[0];
-        // may be null to indicate that there is no actual end date, but the feature is valid forever
-        var latestBaseIndicatorDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
-
-            if (missingTimestampsArray.length == 0){
-                missingTimestampsArray.push(earliestBaseIndicatorDate);
-            }
-            
-            var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestBaseIndicatorDate, updateInterval);
-
-                while((new Date(nextCandidateTimestamp) < (new Date(latestBaseIndicatorDate)))){
-                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
-                        missingTimestampsArray.push(nextCandidateTimestamp);
-                    }
-                    
-                    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
-                }            
-       }
+    var earliestCommonDate = findEarliestCommonDate(baseIndicatorsMetadataArray);
+    var latestCommonDate = findLatestCommonDate(baseIndicatorsMetadataArray);
+    if (missingTimestampsArray.length == 0){
+        missingTimestampsArray.push(earliestCommonDate);
     }
+
+    var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
+
+     while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
+        if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+          missingTimestampsArray.push(nextCandidateTimestamp);
+        }
+                   
+        nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+     } 
 
     return missingTimestampsArray;
 }
