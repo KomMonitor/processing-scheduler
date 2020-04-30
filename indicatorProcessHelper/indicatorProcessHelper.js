@@ -99,9 +99,11 @@ function findMissingTargetTimestamps_fromBaseIndicators(targetIndicatorMetadata,
     if(existingTargetIndicatorTimestamps != undefined && existingTargetIndicatorTimestamps != null && existingTargetIndicatorTimestamps.length > 0){
         // take first timestamp and find any past and future date according to updateInterval
 
-        var firstExistingTimestamp = existingTargetIndicatorTimestamps[0];
-
-        missingTimestampsArray = appendMissingBaseIndicatorTimestamps_priorToReferenceTimestamp(missingTimestampsArray, firstExistingTimestamp, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval);
+        missingTimestampsArray = appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval);
+        
+    }
+    else{
+        missingTimestampsArray = appendMissingBaseIndicatorTimestamps(missingTimestampsArray, missingTimestampsArray, baseIndicatorsMetadataArray, updateInterval);
     }
 
     return missingTimestampsArray;
@@ -130,7 +132,39 @@ function findMissingTargetTimestamps_fromGeoresources(targetIndicatorMetadata, e
 
     return missingTimestampsArray;
 }
-        
+
+function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval){
+
+    for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
+
+        // sorted array of 
+        /*
+            "YYYY-MM-DD",
+            "YYYY-MM-DD"
+        */
+       if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){
+        var earliestBaseIndicatorDate = baseIndicatorMetadata.applicableDates[0];
+        // may be null to indicate that there is no actual end date, but the feature is valid forever
+        var latestBaseIndicatorDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+
+            if (missingTimestampsArray.length == 0){
+                missingTimestampsArray.push(earliestBaseIndicatorDate);
+            }
+            
+            var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestBaseIndicatorDate, updateInterval);
+
+                while((new Date(nextCandidateTimestamp) < (new Date(latestBaseIndicatorDate)))){
+                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                        missingTimestampsArray.push(nextCandidateTimestamp);
+                    }
+                    
+                    nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+                }            
+       }
+    }
+
+    return missingTimestampsArray;
+}
 
 function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval){
 
