@@ -85,16 +85,14 @@ async function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGe
             console.log("Found a total number of '" + missingTimestampsForTargetIndicator.length + "' missing timestamps");
 
             console.log("Missing timestamp values are:\n " + missingTimestampsForTargetIndicator + "");
-        for (const targetTimestamp of missingTimestampsForTargetIndicator) { 
+
             try {
-                console.log("Send indicator computation request for targetDate '" + targetTimestamp + "' and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
-                await processingEngineHelper.triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp);    
+                console.log("Send indicator computation request for previously logged targetDates and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
+                await processingEngineHelper.triggerDefaultComputationForTimestamps(scriptMetadata, missingTimestampsForTargetIndicator);    
             } catch (error) {
                 // repeat request with a time delay?
                 console.error(error);
-            }           
-            
-        }   
+            }    
         } catch (error) {
             console.error(error);
         } 

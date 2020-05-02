@@ -8,7 +8,7 @@ const kommonitorProcessingEngineBasepath = process.env.KOMMONITOR_PROCESSING_ENG
 // construct fixed starting URL to make requests against running KomMonitor data management api
 const kommonitorProcessingEngineURL = "http://" + kommonitorProcessingEngineHost + ":" + kommonitorProcessingEnginePort + kommonitorProcessingEngineBasepath;
 
-function buildPostBody(scriptMetadata, targetTimestamp){
+function buildPostBody(scriptMetadata, targetTimestamps){
     /*
         TEMPLATE
 
@@ -18,7 +18,7 @@ function buildPostBody(scriptMetadata, targetTimestamp){
                 "georesourceIds"
             ],
             "scriptId": "scriptId",
-            "targetDate": "2000-01-23",
+            "targetDates": ["2000-01-23", "2000-01-24"],
             "targetIndicatorId": "targetIndicatorId",
             "baseIndicatorIds": [
                 "baseIndicatorIds",
@@ -43,7 +43,7 @@ function buildPostBody(scriptMetadata, targetTimestamp){
     var postBody = {
         "georesourceIds": scriptMetadata.requiredGeoresourceIds,
         "scriptId": scriptMetadata.scriptId,
-        "targetDate": targetTimestamp,
+        "targetDate": targetTimestamps,
         "targetIndicatorId": scriptMetadata.indicatorId,
         "baseIndicatorIds": scriptMetadata.requiredIndicatorIds,
         "defaultProcessProperties": [
@@ -62,19 +62,19 @@ function buildPostBody(scriptMetadata, targetTimestamp){
       return postBody;
 }
 
-function triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp){
+function triggerDefaultComputationForTimestamps(scriptMetadata, targetTimestamps){
     // send request to KomMonitor processing engine
 
-    var postBody = buildPostBody(scriptMetadata, targetTimestamp);
+    var postBody = buildPostBody(scriptMetadata, targetTimestamps);
 
     return axios.post(kommonitorProcessingEngineURL + "/script-engine/defaultIndicatorComputation", postBody)
       .then(response => {
-        console.log("Triggered job for script with id '" + scriptMetadata.scriptId + "' and timestamp '" + targetTimestamp + "'");
+        console.log("Triggered job for script with id '" + scriptMetadata.scriptId + "'");
       })
       .catch(error => {
-        console.error("Error while triggering job for script with id '" + scriptMetadata.scriptId + "' and timestamp '" + targetTimestamp + "'. Error is:\n" + error);
+        console.error("Error while triggering job for script with id '" + scriptMetadata.scriptId + "'. Error is:\n" + error);
         throw error;
       });
 }
 
-exports.triggerDefaultComputationForTimestamp = triggerDefaultComputationForTimestamp;
+exports.triggerDefaultComputationForTimestamps = triggerDefaultComputationForTimestamps;
