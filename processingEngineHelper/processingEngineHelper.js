@@ -43,7 +43,7 @@ function buildPostBody(scriptMetadata, targetTimestamps){
     var postBody = {
         "georesourceIds": scriptMetadata.requiredGeoresourceIds,
         "scriptId": scriptMetadata.scriptId,
-        "targetDate": targetTimestamps,
+        "targetDates": targetTimestamps,
         "targetIndicatorId": scriptMetadata.indicatorId,
         "baseIndicatorIds": scriptMetadata.requiredIndicatorIds,
         "defaultProcessProperties": [
