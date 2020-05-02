@@ -35,8 +35,10 @@ const triggerIndicatorComputationForMissingTimestamps = async function(){
         return true;
     });
 
-    triggerScriptExecution(scripts_independentFromOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
-    triggerScriptExecution(scripts_dependingOnOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
+    await triggerScriptExecution(scripts_independentFromOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
+    await triggerScriptExecution(scripts_dependingOnOtherScriptIndicators, allIndicatorsMetadata, allGeoresourcesMetadata);
+
+    console.log("All scripts have been triggered.");
 };
 
 function findScripts_independentFromOtherScriptIndicators(allScriptsMetadata){
@@ -67,7 +69,7 @@ function findScripts_independentFromOtherScriptIndicators(allScriptsMetadata){
     return independantScripts;
 }
 
-function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGeoresourcesMetadata){
+async function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGeoresourcesMetadata){
     for (const scriptMetadata of scriptsArray) {
         try {
             console.log("Start process for script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");
@@ -86,7 +88,7 @@ function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGeoresou
         for (const targetTimestamp of missingTimestampsForTargetIndicator) { 
             try {
                 console.log("Send indicator computation request for targetDate '" + targetTimestamp + "' and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
-                processingEngineHelper.triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp);    
+                await processingEngineHelper.triggerDefaultComputationForTimestamp(scriptMetadata, targetTimestamp);    
             } catch (error) {
                 // repeat request with a time delay?
                 console.error(error);
@@ -214,10 +216,30 @@ function findLatestCommonDate(baseIndicatorsMetadataArray){
     return latestCommonDate;
 }
 
+function anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray){
+    for (const indicatorMetadata of baseIndicatorsMetadataArray) {
+        if (! indicatorMetadata.applicableDates || indicatorMetadata.applicableDates.length == 0){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval){
+
+    if(anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray)){
+        console.log("AT least one baseIndicator has no applicableDates. Hence no indicaor computation can be triggered.");
+        return [];
+    }
 
     var earliestCommonDate = findEarliestCommonDate(baseIndicatorsMetadataArray);
     var latestCommonDate = findLatestCommonDate(baseIndicatorsMetadataArray);
+
+    if(! earliestCommonDate || earliestCommonDate == null || !latestCommonDate || latestCommonDate == null){
+        return [];
+    }
+
     if (missingTimestampsArray.length == 0){
         missingTimestampsArray.push(earliestCommonDate);
     }
