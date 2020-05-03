@@ -197,6 +197,7 @@ function findEarliestCommonDate(baseIndicatorsMetadataArray){
 
 function findLatestCommonDate(baseIndicatorsMetadataArray){
     var latestCommonDate;
+    var USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE = JSON.parse(process.env.USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE);
     for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
         if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){
             if (! latestCommonDate){
@@ -204,9 +205,16 @@ function findLatestCommonDate(baseIndicatorsMetadataArray){
                 latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
             }
             else{
-                if((new Date(latestCommonDate) > new Date(baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1]))){
-                    latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+                if(USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE){
+                    if((new Date(latestCommonDate) < new Date(baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1]))){
+                        latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+                    }
                 }
+                else{
+                    if((new Date(latestCommonDate) > new Date(baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1]))){
+                        latestCommonDate = baseIndicatorMetadata.applicableDates[baseIndicatorMetadata.applicableDates.length - 1];
+                    }
+                }                
             }
         }
     }
@@ -227,7 +235,7 @@ function anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray){
 function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval){
 
     if(anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray)){
-        console.log("AT least one baseIndicator has no applicableDates. Hence no indicaor computation can be triggered.");
+        console.log("At least one baseIndicator has no applicableDates. Hence no indicaor computation can be triggered.");
         return [];
     }
 
