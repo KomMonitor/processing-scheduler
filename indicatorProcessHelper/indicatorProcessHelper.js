@@ -259,7 +259,7 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
     var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
 
      while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
-        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && (new Date(nextCandidateTimestamp) > overwritingBeginDate ) )){
+        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && (new Date(nextCandidateTimestamp) >= overwritingBeginDate ) )){
           missingTimestampsArray.push(nextCandidateTimestamp);
         }
                    
@@ -309,7 +309,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
                 while((new Date(nextCandidateTimestamp) < (new Date(latestGeoresourceEndDate)))){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) > overwritingBeginDate) ){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate) ){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
                     
@@ -324,7 +324,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var today = new Date(Date.now());
 
                 while((new Date(nextCandidateTimestamp) < today)){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) > overwritingBeginDate)){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
 
