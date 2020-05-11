@@ -1,12 +1,16 @@
 const dataManagementHelper = require("../dataManagementHelper/dataManagementHelper");
 const processingEngineHelper = require("../processingEngineHelper/processingEngineHelper");
 
-const TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES = JSON.parse(process.env.TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES);
+const TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES = JSON.parse(process.env.TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES);
+const NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES = process.env.NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES;
+if (NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == undefined || NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == null || Number.isNaN(NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES)){
+    NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES = 0;
+}
 
 const triggerIndicatorComputationForMissingTimestamps = async function(){
 
-    if(TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES){
-        console.log("TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES is set to true. Thus, already existing timestamps will be overwritten.");
+    if(TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES){
+        console.log("TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES is set to true. Thus, already existing timestamps will be overwritten for past time period of '" + NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES + "' days.");
     }
     // simple approach
 
@@ -250,10 +254,12 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
         missingTimestampsArray.push(earliestCommonDate);
     }
 
+    var overwritingBeginDate = getOverwritingBeginDate(existingTargetIndicatorTimestamps);
+
     var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
 
      while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
-        if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && (new Date(nextCandidateTimestamp) > overwritingBeginDate ) )){
           missingTimestampsArray.push(nextCandidateTimestamp);
         }
                    
@@ -263,7 +269,21 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
     return missingTimestampsArray;
 }
 
+function getOverwritingBeginDate(existingTargetIndicatorTimestamps) {
+    var overwritingBeginDate;
+    if (existingTargetIndicatorTimestamps && existingTargetIndicatorTimestamps.length > 0) {
+        overwritingBeginDate = new Date(existingTargetIndicatorTimestamps[existingTargetIndicatorTimestamps.length - 1]);
+    }
+    else {
+        overwritingBeginDate = new Date();
+    }
+    overwritingBeginDate.setDate(overwritingBeginDate.getDate() - NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES);
+    return overwritingBeginDate;
+}
+
 function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, georesourcesMetadataArray, updateInterval){
+
+    var overwritingBeginDate = getOverwritingBeginDate(existingTargetIndicatorTimestamps);
 
     for (const georesourceMetadata of georesourcesMetadataArray) {
 
@@ -289,7 +309,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
                 while((new Date(nextCandidateTimestamp) < (new Date(latestGeoresourceEndDate)))){
-                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) > overwritingBeginDate) ){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
                     
@@ -304,7 +324,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var today = new Date(Date.now());
 
                 while((new Date(nextCandidateTimestamp) < today)){
-                    if (TRIGGER_COMPUTATION_OF_ALL_VALID_TIMESTAMPS_OVERWRITING_EXISTING_VALUES || !existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp)){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) > overwritingBeginDate)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
 
