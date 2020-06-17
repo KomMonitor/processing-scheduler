@@ -91,8 +91,13 @@ async function triggerScriptExecution(scriptsArray, allIndicatorsMetadata, allGe
             console.log("Missing timestamp values are:\n " + missingTimestampsForTargetIndicator + "");
 
             try {
-                console.log("Send indicator computation request for previously logged targetDates and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
-                await processingEngineHelper.triggerDefaultComputationForTimestamps(scriptMetadata, missingTimestampsForTargetIndicator);    
+                if(missingTimestampsForTargetIndicator.length > 0){
+                    console.log("Send indicator computation request for previously logged targetDates and script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");            
+                    await processingEngineHelper.triggerDefaultComputationForTimestamps(scriptMetadata, missingTimestampsForTargetIndicator);    
+                } 
+                else{
+                    console.log("No time series elements have to be computed for script with id '" + scriptMetadata.scriptId + "' and targetIndicator with id '" + scriptMetadata.indicatorId + "'");
+                }               
             } catch (error) {
                 // repeat request with a time delay?
                 console.error(error);
@@ -246,15 +251,15 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
     var earliestCommonDate = findEarliestCommonDate(baseIndicatorsMetadataArray);
     var latestCommonDate = findLatestCommonDate(baseIndicatorsMetadataArray);
 
+    var overwritingBeginDate = getOverwritingBeginDate(existingTargetIndicatorTimestamps);
+
     if(! earliestCommonDate || earliestCommonDate == null || !latestCommonDate || latestCommonDate == null){
         return [];
     }
 
-    if (missingTimestampsArray.length == 0){
+    if (!existingTargetIndicatorTimestamps.includes(earliestCommonDate) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(earliestCommonDate) >= overwritingBeginDate)){
         missingTimestampsArray.push(earliestCommonDate);
     }
-
-    var overwritingBeginDate = getOverwritingBeginDate(existingTargetIndicatorTimestamps);
 
     var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
 
@@ -300,7 +305,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
         // may be null to indicate that there is no actual end date, but the feature is valid forever
         var latestGeoresourceEndDate = getLatestGeoresourceEndDate(georesource_timePeriods);
 
-            if (missingTimestampsArray.length == 0){
+            if (!existingTargetIndicatorTimestamps.includes(earliestGeoresourceStartDate) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(earliestGeoresourceStartDate) >= overwritingBeginDate)){
                 missingTimestampsArray.push(earliestGeoresourceStartDate);
             }
             
