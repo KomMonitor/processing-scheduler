@@ -1,18 +1,14 @@
 const axios = require("axios");
 
-// aquire connection details to KomMonitor data management api instance from environment variables
-const kommonitorDataManagementHost = process.env.KOMMONITOR_DATA_MANAGEMENT_HOST;
-const kommonitorDataManagementPort = process.env.KOMMONITOR_DATA_MANAGEMENT_PORT;
-const kommonitorDataManagementBasepath = process.env.KOMMONITOR_DATA_MANAGEMENT_BASEPATH;
-
 const propertyName_targetIndicator = "indicatorId";
 const propertyName_indicatorId = "indicatorId";
 const propertyName_baseIndicators = "requiredIndicatorIds";
 const propertyName_georesources = "requiredGeoresourceIds";
 const propertyName_georesourceId = "georesourceId";
 
+// aquire connection details to KomMonitor data management api instance from environment variables
 // construct fixed starting URL to make requests against running KomMonitor data management api
-const kommonitorDataManagementURL = "http://" + kommonitorDataManagementHost + ":" + kommonitorDataManagementPort + kommonitorDataManagementBasepath;
+const kommonitorDataManagementURL = process.env.KOMMONITOR_DATA_MANAGEMENT_URL;
 
 function fetchAllScriptsMetadata (){
     console.log("fetching script metadata array from KomMonitor data management API");
