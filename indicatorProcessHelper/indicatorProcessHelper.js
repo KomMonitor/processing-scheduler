@@ -1,16 +1,16 @@
 const dataManagementHelper = require("../dataManagementHelper/dataManagementHelper");
 const processingEngineHelper = require("../processingEngineHelper/processingEngineHelper");
 
-const TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES = JSON.parse(process.env.TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES);
-const NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES = process.env.NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES;
-if (NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == undefined || NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == null || Number.isNaN(NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES)){
-    NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES = 0;
-}
+var TRIGGER_PAST_VALUES;
+var NUMBER_OF_DAYS_FOR_PAST_TRIGGERING;
 
-const triggerIndicatorComputationForMissingTimestamps = async function(){
+const triggerIndicatorComputationForMissingTimestamps = async function(TRIGGER_DATES_FROM_THE_PAST, NUMBER_OF_DAYS){
 
-    if(TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES){
-        console.log("TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES is set to true. Thus, already existing timestamps will be overwritten for past time period of '" + NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES + "' days.");
+    TRIGGER_PAST_VALUES = TRIGGER_DATES_FROM_THE_PAST;
+    NUMBER_OF_DAYS_FOR_PAST_TRIGGERING = NUMBER_OF_DAYS;
+
+    if(TRIGGER_PAST_VALUES){
+        console.log("TRIGGER_PAST_VALUES is set to true. Thus, already existing timestamps will be overwritten for past time period of '" + NUMBER_OF_DAYS_FOR_PAST_TRIGGERING + "' days.");
     }
     // simple approach
 
@@ -257,14 +257,14 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
         return [];
     }
 
-    if (!existingTargetIndicatorTimestamps.includes(earliestCommonDate) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(earliestCommonDate) >= overwritingBeginDate)){
+    if (!existingTargetIndicatorTimestamps.includes(earliestCommonDate) || (TRIGGER_PAST_VALUES && new Date(earliestCommonDate) >= overwritingBeginDate)){
         missingTimestampsArray.push(earliestCommonDate);
     }
 
     var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
 
      while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
-        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && (new Date(nextCandidateTimestamp) >= overwritingBeginDate ) )){
+        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && (new Date(nextCandidateTimestamp) >= overwritingBeginDate ) )){
           missingTimestampsArray.push(nextCandidateTimestamp);
         }
                    
@@ -282,7 +282,7 @@ function getOverwritingBeginDate(existingTargetIndicatorTimestamps) {
     else {
         overwritingBeginDate = new Date();
     }
-    overwritingBeginDate.setDate(overwritingBeginDate.getDate() - NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES);
+    overwritingBeginDate.setDate(overwritingBeginDate.getDate() - NUMBER_OF_DAYS_FOR_PAST_TRIGGERING);
     return overwritingBeginDate;
 }
 
@@ -305,7 +305,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
         // may be null to indicate that there is no actual end date, but the feature is valid forever
         var latestGeoresourceEndDate = getLatestGeoresourceEndDate(georesource_timePeriods);
 
-            if (!existingTargetIndicatorTimestamps.includes(earliestGeoresourceStartDate) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(earliestGeoresourceStartDate) >= overwritingBeginDate)){
+            if (!existingTargetIndicatorTimestamps.includes(earliestGeoresourceStartDate) || (TRIGGER_PAST_VALUES && new Date(earliestGeoresourceStartDate) >= overwritingBeginDate)){
                 missingTimestampsArray.push(earliestGeoresourceStartDate);
             }
             
@@ -314,7 +314,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
                 while((new Date(nextCandidateTimestamp) < (new Date(latestGeoresourceEndDate)))){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate) ){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate) ){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
                     
@@ -329,7 +329,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 var today = new Date(Date.now());
 
                 while((new Date(nextCandidateTimestamp) < today)){
-                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate)){
+                    if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
 
