@@ -25,3 +25,11 @@ cron.schedule(cronPattern, () => {
   
   indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES, NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES);
 });
+
+
+// run every day at 00:30 hours
+cron.schedule("0 0 20 * * Friday", () => {
+  console.log("Retrigger indicator computation for all data (set number of days for past triggering to 1000 days)");
+  
+  indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(true, 1000);
+});
