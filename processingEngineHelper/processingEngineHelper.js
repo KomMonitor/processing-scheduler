@@ -1,12 +1,8 @@
 const axios = require("axios");
 
 // aquire connection details to KomMonitor data management api instance from environment variables
-const kommonitorProcessingEngineHost = process.env.KOMMONITOR_PROCESSING_ENGINE_HOST;
-const kommonitorProcessingEnginePort = process.env.KOMMONITOR_PROCESSING_ENGINE_PORT;
-const kommonitorProcessingEngineBasepath = process.env.KOMMONITOR_PROCESSING_ENGINE_BASEPATH;
-
 // construct fixed starting URL to make requests against running KomMonitor data management api
-const kommonitorProcessingEngineURL = "http://" + kommonitorProcessingEngineHost + ":" + kommonitorProcessingEnginePort + kommonitorProcessingEngineBasepath;
+const kommonitorProcessingEngineURL = process.env.KOMMONITOR_PROCESSING_ENGINE_URL;
 
 function buildPostBody(scriptMetadata, targetTimestamps){
     /*
