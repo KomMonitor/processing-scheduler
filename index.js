@@ -23,7 +23,12 @@ console.log("Initialize with cron schedule '" + cronPattern + "'");
 cron.schedule(cronPattern, () => {
   console.log("Begin check to find schedulable indicator processes");
   
-  indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES, NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES);
+  try {
+    
+    indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES, NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES); 
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 
@@ -31,5 +36,10 @@ cron.schedule(cronPattern, () => {
 cron.schedule("0 0 20 * * Friday", () => {
   console.log("Retrigger indicator computation for all data (set number of days for past triggering to 1000 days)");
   
-  indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(true, 1000);
+  try {
+    
+    indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(true, 1000); 
+  } catch (error) {
+    console.error(error);
+  }
 });
