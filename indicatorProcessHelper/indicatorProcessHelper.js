@@ -425,11 +425,11 @@ function getNextFutureTimestampCandidate(referenceTimestamp, updateInterval){
             break;   
         case "ARBITRARY":
             console.log("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");
-            break;     
+            throw Error("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");  
     
         default:
-            console.log("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");
-            break;
+            console.log("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");            
+            throw Error("Update interval is set to arbitrary. It is impossible to determine the next indicatorTimestamp");
     }
 
     return  formatDateAsString(date);
