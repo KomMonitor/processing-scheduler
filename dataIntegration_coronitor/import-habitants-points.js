@@ -9,7 +9,7 @@ const targetURL_dataManagement = process.env.KOMMONITOR_DATA_MANAGEMENT_URL;
 const targetURL_importer = process.env.KOMMONITOR_IMPORTER_URL;
 // const targetURL_importer = "localhost:8087/importer";
 const filePathToCSVFile = process.env.FILE_PATH_HABITANTS_IMPORT;
-const delimiter=",";
+const delimiter=";";
 
 const propertyName_xCoord = "X";
 const propertyName_yCoord = "Y";
@@ -17,7 +17,7 @@ const propertyName_Id = "FID";
 const propertyName_Name = "Addressen";
 
 const validStartDate = process.env.START_DATE_HABITANTS_IMPORT;
-const validEndDate = process.env.START_DATE_HABITANTS_IMPORT;
+const validEndDate = process.env.END_DATE_HABITANTS_IMPORT;
 
 const fileName = "HabitantsImportFile.csv";
 
