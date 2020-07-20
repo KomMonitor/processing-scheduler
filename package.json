@@ -17,6 +17,9 @@
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
-    "node-cron": "^2.0.3"
+    "node-cron": "^2.0.3",
+    "csv2geojson": "^5.1.1",
+    "form-data": "^3.0.0",
+    "iconv-lite": "^0.5.1"
   }
 }

@@ -5,6 +5,11 @@ if(JSON.parse(process.env.DISABLE_LOGS)){
 }
 
 var cronPattern = process.env.CRON_PATTERN_FOR_SCHEDULING;
+var cronPattern_coronaImport = process.env.CRON_PATTERN_FOR_CORONA_IMPORT;
+var cronPattern_recomputationAllTimestamps = process.env.CRON_PATTERN_FOR_RECOMPUTATION_ALL_TIMESTAMPS;
+
+var triggerHabitantsImport = JSON.parse(process.env.TRIGGER_HABITANTS_IMPORT);
+
 
 // import cron from "node-cron";
 const cron = require("node-cron");
@@ -19,7 +24,11 @@ if (NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == undefined || NUMBER_OF_DAY
 
 console.log("Initialize with cron schedule '" + cronPattern + "'");
 
-// run every day at 00:30 hours
+console.log("Initialize complete recomputation with cron schedule '" + cronPattern_recomputationAllTimestamps + "'");
+
+console.log("Initialize corona import with cron schedule '" + cronPattern_coronaImport + "'");
+
+// COMPUTE MISSING INDICATOR TIMESTAMPS
 cron.schedule(cronPattern, () => {
   console.log("Begin check to find schedulable indicator processes");
   
@@ -32,8 +41,8 @@ cron.schedule(cronPattern, () => {
 });
 
 
-// run every day at 00:30 hours
-cron.schedule("0 0 20 * * Friday", () => {
+// RECOMPUTE ALL CORONA INDICATORS
+cron.schedule(cronPattern_recomputationAllTimestamps, () => {
   console.log("Retrigger indicator computation for all data (set number of days for past triggering to 1000 days)");
   
   try {
@@ -43,3 +52,26 @@ cron.schedule("0 0 20 * * Friday", () => {
     console.error(error);
   }
 });
+
+
+const importCoronaPointsHelper = require("./dataIntegration_coronitor/import-corona-points");
+const importHabitantsPointsHelper = require("./dataIntegration_coronitor/import-habitants-points");
+
+// CORONA IMPORT
+cron.schedule(cronPattern_coronaImport, () => {
+  console.log("Trigger Import of Corona points");
+  
+  try {
+    
+    importCoronaPointsHelper.importCSVDataToKomMonitor(); 
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+if (triggerHabitantsImport){
+  console.log("Trigger one time Import of Habitants points");
+
+  importHabitantsPointsHelper.importCSVDataToKomMonitor();
+}
+
