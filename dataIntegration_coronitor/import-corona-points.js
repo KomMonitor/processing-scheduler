@@ -194,10 +194,12 @@ function reformatTimestamps(geoJSON){
     //reformat from dd.mm.yyyy --> yyyy-mm-dd
     geoJSON.features.forEach(function(feature){
         for (const timePropertyName of relevantTimestampFieldNames) {
-            var dateComps = feature.properties[timePropertyName].split(".");
-            if(dateComps && (dateComps.length === 3)){
-                feature.properties[timePropertyName] = "" + dateComps[2] + "-" + dateComps[1] + "-" + dateComps[0];
-            }             
+            if(feature.properties[timePropertyName]){
+                var dateComps = feature.properties[timePropertyName].split(".");
+                if(dateComps && (dateComps.length === 3)){
+                    feature.properties[timePropertyName] = "" + dateComps[2] + "-" + dateComps[1] + "-" + dateComps[0];
+                }   
+            }               
         }
     });
 
