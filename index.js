@@ -24,7 +24,7 @@ if (NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES == undefined || NUMBER_OF_DAY
 
 console.log("Initialize with cron schedule '" + cronPattern + "'");
 
-console.log("Initialize complete recomputation with cron schedule '" + cronPattern_recomputationAllTimestamps + "'");
+// console.log("Initialize complete recomputation with cron schedule '" + cronPattern_recomputationAllTimestamps + "'");
 
 console.log("Initialize corona import with cron schedule '" + cronPattern_coronaImport + "'");
 
@@ -42,16 +42,16 @@ cron.schedule(cronPattern, () => {
 
 
 // RECOMPUTE ALL CORONA INDICATORS
-cron.schedule(cronPattern_recomputationAllTimestamps, () => {
-  console.log("Retrigger indicator computation for all data (set number of days for past triggering to 1000 days)");
+// cron.schedule(cronPattern_recomputationAllTimestamps, () => {
+//   console.log("Retrigger indicator computation for all data (set number of days for past triggering to 1000 days)");
   
-  try {
+//   try {
     
-    indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(true, 1000); 
-  } catch (error) {
-    console.error(error);
-  }
-});
+//     indicatorProcessHelper.triggerIndicatorComputationForMissingTimestamps(true, 1000); 
+//   } catch (error) {
+//     console.error(error);
+//   }
+// });
 
 
 const importCoronaPointsHelper = require("./dataIntegration_coronitor/import-corona-points");
