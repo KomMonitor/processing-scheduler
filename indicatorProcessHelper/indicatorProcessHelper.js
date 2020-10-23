@@ -313,7 +313,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
                 // compute timestamps based on updateInterval until latestEndDate is reached
                 var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestGeoresourceStartDate, updateInterval);
 
-                while((new Date(nextCandidateTimestamp) < (new Date(latestGeoresourceEndDate)))){
+                while((new Date(nextCandidateTimestamp) <= (new Date(latestGeoresourceEndDate)))){
                     if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate) ){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
@@ -328,7 +328,7 @@ function appendMissingGeoresourceTimestamps(missingTimestampsArray, existingTarg
 
                 var today = new Date(Date.now());
 
-                while((new Date(nextCandidateTimestamp) < today)){
+                while((new Date(nextCandidateTimestamp) <= today)){
                     if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && new Date(nextCandidateTimestamp) >= overwritingBeginDate)){
                         missingTimestampsArray.push(nextCandidateTimestamp);
                     }
