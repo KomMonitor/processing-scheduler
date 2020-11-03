@@ -1,5 +1,7 @@
 const axios = require("axios");
 
+const encryptionHelper = require("./EncryptionHelperService");
+
 const propertyName_targetIndicator = "indicatorId";
 const propertyName_indicatorId = "indicatorId";
 const propertyName_baseIndicators = "requiredIndicatorIds";
@@ -16,7 +18,7 @@ function fetchAllScriptsMetadata (){
     //GET
     return axios.get(kommonitorDataManagementURL + "/process-scripts")
       .then(response => {
-        // response.data should be the script as byte[]
+        response = encryptionHelper.decryptAPIResponseIfRequired(response);
         return response.data;
       })
       .catch(error => {
@@ -32,6 +34,7 @@ function fetchAllIndicatorsMetadata (){
     return axios.get(kommonitorDataManagementURL + "/indicators")
       .then(response => {
         // response.data should be the script as byte[]
+        response = encryptionHelper.decryptAPIResponseIfRequired(response);
         return response.data;
       })
       .catch(error => {
@@ -46,7 +49,7 @@ function fetchAllGeoresourcesMetadata (){
     //GET
     return axios.get(kommonitorDataManagementURL + "/georesources")
       .then(response => {
-        // response.data should be the script as byte[]
+        response = encryptionHelper.decryptAPIResponseIfRequired(response);
         return response.data;
       })
       .catch(error => {
