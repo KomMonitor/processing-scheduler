@@ -12,7 +12,7 @@ var keycloakClientSecret = undefined;
 var keycloakRealm = undefined;
 
 var initKeycloak = function () {
-  if (process.env.KEYCLOAK_ENABLED) {
+  if (JSON.parse(process.env.KEYCLOAK_ENABLED)) {
     try {
 
       const data = fs.readFileSync('./keycloak.json', 
@@ -79,7 +79,7 @@ const getKeycloakAxiosConfig = async function(){
   var config = {    
   }
 
-  if (process.env.KEYCLOAK_ENABLED){
+  if (JSON.parse(process.env.KEYCLOAK_ENABLED)){
     // get bearer token and make auth header
     var bearerToken = await requestKeycloakToken();
 
