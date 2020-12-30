@@ -1,25 +1,38 @@
 const qs = require('querystring');
+const axios = require("axios");
+const fs = require("fs");
 
 // init methode, die die keycloak config ausliest!
 
-const keycloakTargetURL = undefined;
-const keycloakUser = undefined;
-const keycloakUserPassword = undefined;
-const keycloakClientID = undefined;
-const keycloakClientSecret = undefined;
-const keycloakRealm = undefined;
+var keycloakTargetURL = undefined;
+var keycloakUser = undefined;
+var keycloakUserPassword = undefined;
+var keycloakClientID = undefined;
+var keycloakClientSecret = undefined;
+var keycloakRealm = undefined;
 
 var initKeycloak = function () {
   if (process.env.KEYCLOAK_ENABLED) {
     try {
-      await axios.get('keycloak.json').then(async function (response) {
-        var keycloakConfig = response.data;
-        keycloakTargetURL = keycloakConfig['auth-server-url'];
+
+      const data = fs.readFileSync('./keycloak.json', 
+              {encoding:'utf8', flag:'r'}); 
+
+      var keycloakConfig = JSON.parse(data);
+      keycloakTargetURL = keycloakConfig['auth-server-url'];
         keycloakRealm = keycloakConfig['realm'];
         keycloakClientID = keycloakConfig['resource'];
         keycloakUser = keycloakConfig['keycloak-username'];
         keycloakUserPassword = keycloakConfig["keycloak-userpassword"];
-      });
+
+      // axios.get('keycloak.json').then(async function (response) {
+      //   var keycloakConfig = response.data;
+      //   keycloakTargetURL = keycloakConfig['auth-server-url'];
+      //   keycloakRealm = keycloakConfig['realm'];
+      //   keycloakClientID = keycloakConfig['resource'];
+      //   keycloakUser = keycloakConfig['keycloak-username'];
+      //   keycloakUserPassword = keycloakConfig["keycloak-userpassword"];
+      // });
     } catch (error) {
       console.error("Error while initializing kommonitorKeycloakHelperService. Error while fetching and interpreting config file. Error is: " + error);
     }

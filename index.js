@@ -10,7 +10,7 @@ if(JSON.parse(process.env.DISABLE_LOGS)){
 process.env.KOMMONITOR_DATA_MANAGEMENT_URL_CRUD = process.env.KOMMONITOR_DATA_MANAGEMENT_URL;
 process.env.KOMMONITOR_DATA_MANAGEMENT_URL_GET = process.env.KOMMONITOR_DATA_MANAGEMENT_URL;
 // if keycloak is not enabled we must use the public endpoints of management component for GET requests.
-if (! KEYCLOAK_ENABLED){
+if (! process.env.KEYCLOAK_ENABLED){
   process.env.KOMMONITOR_DATA_MANAGEMENT_URL_GET = process.env.KOMMONITOR_DATA_MANAGEMENT_URL + "/public";
 }
 
