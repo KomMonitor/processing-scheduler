@@ -22,17 +22,8 @@ var initKeycloak = function () {
       keycloakTargetURL = keycloakConfig['auth-server-url'];
         keycloakRealm = keycloakConfig['realm'];
         keycloakClientID = keycloakConfig['resource'];
-        keycloakUser = keycloakConfig['keycloak-username'];
-        keycloakUserPassword = keycloakConfig["keycloak-userpassword"];
-
-      // axios.get('keycloak.json').then(async function (response) {
-      //   var keycloakConfig = response.data;
-      //   keycloakTargetURL = keycloakConfig['auth-server-url'];
-      //   keycloakRealm = keycloakConfig['realm'];
-      //   keycloakClientID = keycloakConfig['resource'];
-      //   keycloakUser = keycloakConfig['keycloak-username'];
-      //   keycloakUserPassword = keycloakConfig["keycloak-userpassword"];
-      // });
+        keycloakUser = keycloakConfig['keycloak-adminRights-username'];
+        keycloakUserPassword = keycloakConfig["keycloak-adminRights-userpassword"];
     } catch (error) {
       console.error("Error while initializing kommonitorKeycloakHelperService. Error while fetching and interpreting config file. Error is: " + error);
     }

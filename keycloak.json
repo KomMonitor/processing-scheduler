@@ -1,12 +1,10 @@
 {
   "realm": "kommonitor",
-  "auth-server-url": "https://keycloak.url/auth/",
+  "auth-server-url": "http://localhost:8000/auth/",
   "ssl-required": "external",
   "resource": "kommonitor-processing-scheduler",
   "public-client": true,
   "confidential-port": 0,
-  "admin-rolename": "administrator",
-  "admin-rolepassword": "password",
-  "keycloak-username": "user",
-  "keycloak-userpassword": "password"
+  "keycloak-adminRights-username": "scheduler",
+  "keycloak-adminRights-userpassword": "scheduler"
 }
