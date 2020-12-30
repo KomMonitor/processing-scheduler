@@ -77,7 +77,8 @@ const requestKeycloakToken = async function () {
 const getKeycloakAxiosConfig = async function(){
 
   var config = {    
-  }
+    headers: {}
+  };
 
   if (JSON.parse(process.env.KEYCLOAK_ENABLED)){
     // get bearer token and make auth header
