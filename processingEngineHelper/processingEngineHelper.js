@@ -1,4 +1,5 @@
 const axios = require("axios");
+const keycloakHelper = require("../keycloakHelper/keycloakHelper");
 
 // aquire connection details to KomMonitor data management api instance from environment variables
 // construct fixed starting URL to make requests against running KomMonitor data management api
