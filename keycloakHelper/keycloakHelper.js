@@ -65,9 +65,27 @@ const requestKeycloakToken = async function () {
       // called asynchronously if an error occurs
       // or server returns response with an error status.
       //$scope.error = response.statusText;
-      console.error("Error while requesting auth bearer token from keycloak.");
+      console.error("Error while requesting auth bearer token from keycloak. Error is: \n" + error);
       throw error;
     })
 };
 
+const getKeycloakAxiosConfig = async function(){
+
+  var config = {    
+  }
+
+  if (process.env.KEYCLOAK_ENABLED){
+    // get bearer token and make auth header
+    var bearerToken = await requestKeycloakToken();
+
+    config.headers= {
+      'Authorization': 'Bearer ' + bearerToken
+    }
+  }
+
+  return config;
+};
+
 exports.requestKeycloakToken = requestKeycloakToken;
+exports.getKeycloakAxiosConfig = getKeycloakAxiosConfig;
