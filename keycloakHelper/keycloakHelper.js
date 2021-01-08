@@ -15,15 +15,12 @@ var initKeycloak = function () {
   if (JSON.parse(process.env.KEYCLOAK_ENABLED)) {
     try {
 
-      const data = fs.readFileSync('./keycloak.json', 
-              {encoding:'utf8', flag:'r'}); 
-
-      var keycloakConfig = JSON.parse(data);
-      keycloakTargetURL = keycloakConfig['auth-server-url'];
-        keycloakRealm = keycloakConfig['realm'];
-        keycloakClientID = keycloakConfig['resource'];
-        keycloakUser = keycloakConfig['keycloak-adminRights-username'];
-        keycloakUserPassword = keycloakConfig["keycloak-adminRights-userpassword"];
+      keycloakTargetURL = process.env.KEYCLOAK_AUTH_SERVER_URL;
+        keycloakRealm = process.env.KEYCLOAK_REALM;
+        keycloakClientID = process.env.KEYCLOAK_RESOURCE;
+        keycloakUser = process.env.KEYCLOAK_ADMIN_RIGHTS_USER_NAME;
+        keycloakUserPassword = process.env.KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD;
+        
     } catch (error) {
       console.error("Error while initializing kommonitorKeycloakHelperService. Error while fetching and interpreting config file. Error is: " + error);
     }
