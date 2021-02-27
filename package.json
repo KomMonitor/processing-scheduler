@@ -1,16 +1,16 @@
 {
   "name": "kommonitor-processing-scheduler",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Scheduler for KomMonitor processing engine",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node -r esm index.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/kommonitor/processing-scheduler.git"
   },
+  "keywords": ["KomMonitor"],
   "author": "Christian Danowski-Buhren",
   "license": "Apache-2.0",
   "dependencies": {
@@ -27,6 +27,7 @@
     "jsdoc": "^3.6.4",
     "jshint": "^2.11.0",
     "license-checker": "^25.0.1",
-    "npm-license-crawler": "^0.2.1"
+    "npm-license-crawler": "^0.2.1",
+    "npm-release": "^1.0.0"
   }
 }
