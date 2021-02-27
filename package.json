@@ -12,6 +12,7 @@
   },
   "keywords": ["KomMonitor"],
   "author": "Christian Danowski-Buhren",
+  "private": true,
   "license": "Apache-2.0",
   "dependencies": {
     "axios": "^0.19.2",
