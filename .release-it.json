@@ -1,0 +1,9 @@
+{
+    "plugins": {
+        "@release-it/keep-a-changelog": {
+            "filename": "CHANGELOG.md",
+            "addUnreleased": false,
+            "keepUnreleased": true
+        }
+    }
+}
