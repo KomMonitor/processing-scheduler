@@ -1,6 +1,6 @@
 {
   "name": "kommonitor-processing-scheduler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Scheduler for KomMonitor processing engine",
   "main": "index.js",
   "scripts": {
