@@ -11,7 +11,9 @@
     "type": "git",
     "url": "https://github.com/kommonitor/processing-scheduler.git"
   },
-  "keywords": ["KomMonitor"],
+  "keywords": [
+    "KomMonitor"
+  ],
   "author": "Christian Danowski-Buhren",
   "private": true,
   "license": "Apache-2.0",
