@@ -363,13 +363,18 @@ function getLatestGeoresourceEndDate(georesource_timePeriods){
     var latestEndDate;
     for (const timePeriod of georesource_timePeriods) {
         if(! latestEndDate){
-            latestEndDate = new Date(timePeriod.endDate);
+            if(timePeriod.endDate){
+                latestEndDate = new Date(timePeriod.endDate);
+            }
+            
         }
         else{
-            var endDateCandidate = new Date (timePeriod.endDate);
+            if(timePeriod.endDate){
+                var endDateCandidate = new Date (timePeriod.endDate);
             if(endDateCandidate > latestEndDate){
                 latestEndDate = endDateCandidate;
             } 
+            }            
         }
 
         if (latestEndDate === null){
