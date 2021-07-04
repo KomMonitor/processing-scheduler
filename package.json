@@ -1,26 +1,46 @@
 {
   "name": "kommonitor-processing-scheduler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Scheduler for KomMonitor processing engine",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node -r esm index.js"
+    "start": "node index.js",
+    "release": "release-it"
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.fbg-hsbo.de/kommonitor/kommonitor-processing-scheduler.git"
+    "url": "https://github.com/kommonitor/processing-scheduler.git"
   },
+  "keywords": [
+    "KomMonitor"
+  ],
   "author": "Christian Danowski-Buhren",
+  "private": true,
   "license": "Apache-2.0",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
     "node-cron": "^2.0.3",
     "csv2geojson": "^5.1.1",
     "form-data": "^3.0.0",
-    "iconv-lite": "^0.5.1"
+    "iconv-lite": "^0.5.1",
+    "keycloak-js": "10.0.1",
+    "querystring": "^0.2.0"
+  },
+  "devDependencies": {
+    "@release-it/keep-a-changelog": "^2.2.2",
+    "docdash": "^1.1.0",
+    "jsdoc": "^3.6.4",
+    "jshint": "^2.11.0",
+    "license-checker": "^25.0.1",
+    "npm-license-crawler": "^0.2.1",
+    "release-it": "^14.6.2"
+  },
+  "jshintConfig": {
+    "undef": true,
+    "unused": true,
+    "esversion": 8
   }
 }

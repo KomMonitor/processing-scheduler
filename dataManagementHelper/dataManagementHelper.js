@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 const encryptionHelper = require("./EncryptionHelperService");
+const keycloakHelper = require("../keycloakHelper/keycloakHelper");
 
 const propertyName_targetIndicator = "indicatorId";
 const propertyName_indicatorId = "indicatorId";
@@ -10,13 +11,15 @@ const propertyName_georesourceId = "georesourceId";
 
 // aquire connection details to KomMonitor data management api instance from environment variables
 // construct fixed starting URL to make requests against running KomMonitor data management api
-const kommonitorDataManagementURL = process.env.KOMMONITOR_DATA_MANAGEMENT_URL;
+const kommonitorDataManagementURL = process.env.KOMMONITOR_DATA_MANAGEMENT_URL_GET;
 
-function fetchAllScriptsMetadata (){
+async function fetchAllScriptsMetadata (){
     console.log("fetching script metadata array from KomMonitor data management API");
+
+    var config = await keycloakHelper.getKeycloakAxiosConfig();
   
     //GET
-    return axios.get(kommonitorDataManagementURL + "/process-scripts")
+    return await axios.get(kommonitorDataManagementURL + "/process-scripts", config)
       .then(response => {
         response = encryptionHelper.decryptAPIResponseIfRequired(response);
         return response.data;
@@ -27,11 +30,13 @@ function fetchAllScriptsMetadata (){
       });
 }
 
-function fetchAllIndicatorsMetadata (){
+async function fetchAllIndicatorsMetadata (){
     console.log("fetching indicator metadata array from KomMonitor data management API");
+
+    var config = await keycloakHelper.getKeycloakAxiosConfig();
   
     //GET
-    return axios.get(kommonitorDataManagementURL + "/indicators")
+    return await axios.get(kommonitorDataManagementURL + "/indicators", config)
       .then(response => {
         // response.data should be the script as byte[]
         response = encryptionHelper.decryptAPIResponseIfRequired(response);
@@ -43,11 +48,13 @@ function fetchAllIndicatorsMetadata (){
       });
 }
 
-function fetchAllGeoresourcesMetadata (){
+async function fetchAllGeoresourcesMetadata (){
     console.log("fetching georesources metadata array from KomMonitor data management API");
+
+    var config = await keycloakHelper.getKeycloakAxiosConfig();
   
     //GET
-    return axios.get(kommonitorDataManagementURL + "/georesources")
+    return await axios.get(kommonitorDataManagementURL + "/georesources", config)
       .then(response => {
         response = encryptionHelper.decryptAPIResponseIfRequired(response);
         return response.data;

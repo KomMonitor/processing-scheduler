@@ -1,30 +1,6 @@
 # KomMonitor Processing Scheduler
 This NodeJS project is part of the [KomMonitor](http://kommonitor.de) spatial data infrastructure and periodocally detects computable indicator timestamps whose computation is then triggered by calling the **Processing Engine**. 
 
-**Table of Content**
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:0 orderedList:0 -->
-
-- [KomMonitor Processing Scheduler](#kommonitor-processing-scehduler)
-	- [Quick Links And Further Information on KomMonitor](#quick-links-and-further-information-on-kommonitor)
-	- [Overview](#overview)
-	- [Dependencies to other KomMonitor Components](#dependencies-to-other-kommonitor-components)
-	- [Installation / Building Information](#installation-building-information)
-		- [Configuration](#configuration)
-			- [.env - Configure Deployment Details of other Services](#env-configure-deployment-details-of-other-services)
-		- [Running the NodeJS KomMonitor Processing Scheduler](#running-the-nodejs-kommonitor-processing-scheduler)
-			- [Local Manual Startup and Shutdown](#local-manual-startup-and-shutdown)
-			- [Production Startup and Shutdown](#production-startup-and-shutdown)
-		- [Docker](#docker)
-	- [User Guide](#user-guide)
-	- [Contribution - Developer Information](#contribution-developer-information)
-		- [How to Contribute](#how-to-contribute)
-		- [Branching](#branching)
-	- [Third Party Dependencies](#third-party-dependencies)
-	- [Contact](#contact)
-	- [Credits and Contributing Organizations](#credits-and-contributing-organizations)
-
-<!-- /TOC -->    
-
 ## Quick Links And Further Information on KomMonitor
    - [DockerHub repositories of KomMonitor Stack](https://hub.docker.com/orgs/kommonitor/repositories)
    - [Github Repositories of KomMonitor Stack](https://github.com/KomMonitor)
@@ -68,69 +44,8 @@ KomMonitor Processing Scheduler requires
    - a running instance of **Processing Engine** to trigger the computaton of target indicator timeseries elements for various spatial units
    - an optional and configurable connection to a running **Keycloak** server, if role-based data access is activated via configuration of KomMonitor stack
 
-## Installation / Building Information
-Being a NodeJS server project, installation and building of the service is as simple as calling ```npm install``` to get all the node module dependencies and run `npm start`. This will start the service and it's periodical resource data scanning. Even Docker images can be acquired with ease, as described below. However, depending on your environment configuration aspects have to be adjusted first.
 
-### Configuration
-Similar to other **KomMonitor** components, some settings are required, especially to adjust connection details to other linked services to your local environment. This NodeJS app makes use of `dotenv` module, which parses a file called `.env` located at project root when starting the app to populate its properties to app components.
-
-#### .env - Configure Deployment Details of other Services
-The central configuration file is located at [.env](./.env). Several important aspects must match your target environment when deploying the service. These are:
-
-```yml
-
-KOMMONITOR_DATA_MANAGEMENT_URL=http://kommonitor-data-management:8085/management      # URL to Data Management service; use docker name and port within same network if possible
-KOMMONITOR_PROCESSING_ENGINE_URL=http://kommonitor-processing-engine:8086/processing  # URL to Processing Engine service; use docker name and port within same network if possible
-
-CRON_PATTERN_FOR_SCHEDULING=*/30 * * * *     # CRON pattern (refer to https://www.npmjs.com/package/node-cron) for periodic scheduler triggering to initialize missing indicator time-series elements 
-
-SETTING_AGGREGATE_SPATIAL_UNITS=false    # default false; global setting whether the computed indictor values from the hierarchically lowest spatial unit shall be aggregated to hierarchically higher spatial units (true) or if each spatial unit shall be computed own their own (false - required that base data is available on the resprctive spatial units)
-
-TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES=false   # boolean global setting to let scheduler retrigger already computed indicator time-series elements for a certain period in time; good for use cases where historic base data is changed due to new facts, and indicator data - computed from that base data - must be recomputed; applies globally to all computed indicators currently  
-NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES=7   # number of days within the past to recompute indicator time series values - only relevant if TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES=true
-
-DISABLE_LOGS=false         # optionally disable any console logs
-
-USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE=true   # # if set to true, then the last possible timestamp from any baseIndicator is used; i.e. if there are two base indicators A and B where lastTimestamp(A)=2019-12-31 and lastTimestamp(B)=2020-06-31, then 2020-06-31 is used; if set to false, then 2019-12-31 will be used instead (as this is the latest "common" date across all baseIndicators) 
-
-ENCRYPTION_ENABLED=false       # enable/disable encrypted data retrieval from Data Management service
-ENCRYPTION_PASSWORD=password   # shared secret for data encryption - must be set equally within all supporting components
-ENCRYPTION_IV_LENGTH_BYTE=16   # length of random initialization vector for encryption algorithm - must be set equally within all supporting components
-
-KEYCLOAK_ENABLED=false    # enable/disable role-based data access using Keycloak
-KEYCLOAK_REALM=kommonitor     # Keycloak realm name
-KEYCLOAK_AUTH_SERVER_URL=https://keycloak.fbg-hsbo.de/auth/  # Keycloak URL ending with "/auth/"
-KEYCLOAK_SSL_REQUIRED=external    # Keycloak SSL setting; ["external", "none"]; default "external"
-KEYCLOAK_RESOURCE=kommonitor-processing-scheduler    # Keycloak client/resource name
-KEYCLOAK_PUBLIC_CLIENT=true    # Keycloak setting is public client - should be true
-KEYCLOAK_CONFIDENTIAL_PORT=0    # Keycloak setting confidential port - default is 0
-KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler   # Keycloak internal user name within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data 
-KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler   # Keycloak internal user password within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data
-
-```
-
-After adjusting the configuration to your target environment, you may continue to build and run the service as described next.
-
-### Running the NodeJS KomMonitor Processing Engine
-#### Local Manual Startup and Shutdown
-Make sure you have installed all node dependencies by calling `npm install`. The to locally start the server enter command `npm start` from the project root, which will launch the CRON-based scanning of resource data.
-To shutdown simply hit `CTRL+c` in the terminal.
-
-#### Production Startup and Shutdown
-To launch and monitor any NodeJS app in production environment, we recommend the Node Process Manager [PM2](http://pm2.keymetrics.io/). It is a node module itself and is able to manage and monitor NodeJS application by executing simple command like `pm2 start app.js`, `pm2 restart app.js`, `pm2 stop app.js`, `pm2 delete app.js`. Via ``pm2 list`` a status monitor for running applications can be displayed. See [PM2 Quickstart Guide](http://pm2.keymetrics.io/docs/usage/quick-start/) for further information and way more details.
-
-PM2 can even be registered as system service, so it can be automatically restarted on server restart, thus ensuring that the registered applications will be relaunched also. Depending on your host environment (e.g. ubuntu, windows, mac), the process differs. Please follow [PM2 Startup hints](http://pm2.keymetrics.io/docs/usage/startup/) for detailed information.
-
-When installed and configured PM2, the **KomMonitor Processing Scheduler** can be started and monitored via `pm2 start index.js --name <app_name>` (while `<app_name>` is optional, it should be set individually, e.g. `km-processing-scheduler`, otherwise the application will be called `index`), executed from project root. To check application status just hit `pm2 list` and inspect the resulting dashboard for the entry with the specified `<app_name>`.
-
-To shutdown call `pm2 stop <app_name>` in the terminal. This will stop the service. To completely remove it from PM2, call `pm2 delete <app_name>`.
-
-### Docker
-The **KomMonitor Processing Scheduler** can also be build and deployed as Docker image (i.e. `docker build -t kommonitor/processing-scheduler:latest .`). The project contains the associated `Dockerfile` and an exemplar `docker-compose.yml` on project root level. The Dockerfile contains a `RUN npm install --production` command, so necessary node dependencies will be fetched on build time.
-
-The exemplar [docker-compose.yml](./docker-compose.yml) file specifies only a subset of the KomMonitor stack. The`kommonitor-processing-scheduler` contains an `environment` section to define the required settings (connection details to other services etc. according to the [Configuration section](#configuration) mentioned above). In addition required containers `kommonitor-processing-engine` and `kommonitor-data-management` are included. The latter requires a database `kommonitor-db`. The `kommonitor-processing-engine` container depends on the `redis` database container.
-
-### Exemplar docker-compose File with explanatory comments
+## Exemplar docker-compose File with explanatory comments
 
 Only contains subset of whole KomMonitor stack to focus on the config parameters of this component
 
@@ -259,18 +174,6 @@ volumes:
  postgres_data:
 
 ```
-
-## Contribution - Developer Information
-This section contains information for developers.
-
-### How to Contribute
-The technical lead of the whole [KomMonitor](http://kommonitor.de) spatial data infrastructure currently lies at the Bochum University of Applied Sciences, Department of Geodesy. We invite you to participate in the project and in the software development process. If you are interested, please contact any of the persons listed in the [Contact section](#contact):
-
-### Branching
-The `master` branch contains latest stable releases. The `develop` branch is the main development branch that will be merged into the `master` branch from time to time. Any other branch focuses certain bug fixes or feature requests.
-
-## Third Party Dependencies
-We use [license-checker](https://www.npmjs.com/package/license-checker) to gain insight about used third party libs. I.e. install globally via ```npm install -g license-checker```, navigate to root of the project and then perform ```license-checker --json --out ThirdParty.json``` to create/overwrite the respective file in JSON format.
 
 ## Contact
 |    Name   |   Organization    |    Mail    |
