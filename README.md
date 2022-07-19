@@ -27,6 +27,7 @@ This NodeJS project is part of the [KomMonitor](http://kommonitor.de) spatial da
 
 ## Quick Links And Further Information on KomMonitor
    - [DockerHub repositories of KomMonitor Stack](https://hub.docker.com/orgs/kommonitor/repositories)
+   - [KomMonitor Docker Repository including default docker-compose templates and default resource files for keycloak and KomMonitor stack](https://github.com/KomMonitor/docker)
    - [Github Repositories of KomMonitor Stack](https://github.com/KomMonitor)
    - [Github Wiki for KomMonitor Guidance and central Documentation](https://github.com/KomMonitor/KomMonitor-Docs/wiki)
    - [Technical Guidance](https://github.com/KomMonitor/KomMonitor-Docs/wiki/Technische-Dokumentation) and [Deployment Information](https://github.com/KomMonitor/KomMonitor-Docs/wiki/Setup-Guide) for complete KomMonitor stack on Github Wiki
@@ -66,7 +67,7 @@ Ideas to improve the **Processing Scheduler** could be:
 KomMonitor Processing Scheduler requires 
    - a running instance of KomMonitor **Data Management** for main data retrieval
    - a running instance of **Processing Engine** to trigger the computaton of target indicator timeseries elements for various spatial units
-   - an optional and configurable connection to a running **Keycloak** server, if role-based data access is activated via configuration of KomMonitor stack
+   - Since version 2.0.0 KomMonitor Client Config service requires **Keycloak** for authenticated access to future POST requests (currently scheduler has no REST endpoint, but will have in future releases). Only KomMonitor administrators shall be allowed to call the POST endpoints of this service. Within the Keycloak realm the **processing scheduler** component must be integrated as a realm client with access type ***confidential*** so that a keycloak secret can be retrieved and configured.
 
 ## Installation / Building Information
 Being a NodeJS server project, installation and building of the service is as simple as calling ```npm install``` to get all the node module dependencies and run `npm start`. This will start the service and it's periodical resource data scanning. Even Docker images can be acquired with ease, as described below. However, depending on your environment configuration aspects have to be adjusted first.
@@ -79,33 +80,54 @@ The central configuration file is located at [.env](./.env). Several important a
 
 ```yml
 
-KOMMONITOR_DATA_MANAGEMENT_URL=http://kommonitor-data-management:8085/management      # URL to Data Management service; use docker name and port within same network if possible
-KOMMONITOR_PROCESSING_ENGINE_URL=http://kommonitor-processing-engine:8086/processing  # URL to Processing Engine service; use docker name and port within same network if possible
+# KomMonitor Data Management API connection details
+KOMMONITOR_DATA_MANAGEMENT_URL=http://localhost:8085/management
+# KomMonitor Processing Engine connection details
+KOMMONITOR_PROCESSING_ENGINE_URL=http://localhost:8086/processing
 
-CRON_PATTERN_FOR_SCHEDULING=*/30 * * * *     # CRON pattern (refer to https://www.npmjs.com/package/node-cron) for periodic scheduler triggering to initialize missing indicator time-series elements 
+# details for scheduling script check and execution triggering
+# CRON pattern; i.e. * */5 * * * * means run check all 5 minutes
+CRON_PATTERN_FOR_SCHEDULING=* */5 * * * *
+# global setting whether aggregation to higher spatial units shall be performed - default is 'false' to indicate that each spatial unit shall be computed individually
+SETTING_AGGREGATE_SPATIAL_UNITS=false#
+# activate if already computed indicator values shall be recomputed for the number of past days as specified by subsequent parameter 'NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES' 
+TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES=false
+# number of past days for which indicator values shall be recomputed - used id there are indicators whose values might change due to manual correction of past values
+NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES=7
 
-SETTING_AGGREGATE_SPATIAL_UNITS=false    # default false; global setting whether the computed indictor values from the hierarchically lowest spatial unit shall be aggregated to hierarchically higher spatial units (true) or if each spatial unit shall be computed own their own (false - required that base data is available on the resprctive spatial units)
+DISABLE_LOGS=false
 
-TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES=false   # boolean global setting to let scheduler retrigger already computed indicator time-series elements for a certain period in time; good for use cases where historic base data is changed due to new facts, and indicator data - computed from that base data - must be recomputed; applies globally to all computed indicators currently  
-NUMBER_OF_DAYS_FOR_OVERWRITING_EXISTING_VALUES=7   # number of days within the past to recompute indicator time series values - only relevant if TRIGGER_COMPUTATION_OF_PAST_TIMESTAMPS_OVERWRITING_EXISTING_VALUES=true
+# if set to true, then the last possible timestamp from any baseIndicator is used
+# i.e. if there are two base indicators A and B where lastTimestamp(A)=2019-12-31
+# and lastTimestamp(B)=2020-06-31, then 2020-06-31 is used
+# if set to false, then 2019-12-31 will be used instead (as this is the latest "common" date across all baseIndicators) 
+USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE=true
 
-DISABLE_LOGS=false         # optionally disable any console logs
+# encryption information that - if activated - must be set equally within all relevant components (data-management, processing engine, scheduler, web-client)
+# enable/disable encrypted data retrieval from Data Management service
+ENCRYPTION_ENABLED=false       
+# shared secret for data encryption must be set equally within all supporting components
+ENCRYPTION_PASSWORD=password   
+# length of random initialization vector for encryption algorithm - must be set equally within all supporting components
+ENCRYPTION_IV_LENGTH_BYTE=16   
 
-USE_LATEST_POSSIBLE_BASE_INDICATOR_DATE_INSTEAD_OF_COMMON_DATE=true   # # if set to true, then the last possible timestamp from any baseIndicator is used; i.e. if there are two base indicators A and B where lastTimestamp(A)=2019-12-31 and lastTimestamp(B)=2020-06-31, then 2020-06-31 is used; if set to false, then 2019-12-31 will be used instead (as this is the latest "common" date across all baseIndicators) 
-
-ENCRYPTION_ENABLED=false       # enable/disable encrypted data retrieval from Data Management service
-ENCRYPTION_PASSWORD=password   # shared secret for data encryption - must be set equally within all supporting components
-ENCRYPTION_IV_LENGTH_BYTE=16   # length of random initialization vector for encryption algorithm - must be set equally within all supporting components
-
-KEYCLOAK_ENABLED=false    # enable/disable role-based data access using Keycloak
-KEYCLOAK_REALM=kommonitor     # Keycloak realm name
-KEYCLOAK_AUTH_SERVER_URL=https://keycloak.fbg-hsbo.de/auth/  # Keycloak URL ending with "/auth/"
-KEYCLOAK_SSL_REQUIRED=external    # Keycloak SSL setting; ["external", "none"]; default "external"
-KEYCLOAK_RESOURCE=kommonitor-processing-scheduler    # Keycloak client/resource name
-KEYCLOAK_PUBLIC_CLIENT=true    # Keycloak setting is public client - should be true
-KEYCLOAK_CONFIDENTIAL_PORT=0    # Keycloak setting confidential port - default is 0
-KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler   # Keycloak internal user name within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data 
-KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler   # Keycloak internal user password within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data
+# keycloak information
+# enable/disable keycloak
+KEYCLOAK_ENABLED=true  
+# keycloak realm name
+KEYCLOAK_REALM=kommonitor 
+# keycloak target URL inlcuding /auth/
+KEYCLOAK_AUTH_SERVER_URL=http://localhost:8080/auth/
+# keycloak client name 
+KEYCLOAK_RESOURCE=kommonitor-processing-scheduler 
+# keycloak client secret using access type confidential
+KEYCLOAK_CLIENT_SECRET=keycloak-secret 
+# name of kommonitor admin role within keycloak - default is 'kommonitor-creator'
+KOMMONITOR_ADMIN_ROLENAME=kommonitor-creator
+# name of a keycloak/kommonitor user that has the kommonitor admin role 
+KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler
+# password of a keycloak/kommonitor user that has the kommonitor admin role
+KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler
 
 ```
 
@@ -132,7 +154,7 @@ The exemplar [docker-compose.yml](./docker-compose.yml) file specifies only a su
 
 ### Exemplar docker-compose File with explanatory comments
 
-Only contains subset of whole KomMonitor stack to focus on the config parameters of this component
+Only contains subset of whole KomMonitor stack to focus on the config parameters of this component. Only contains subset of whole KomMonitor stack to focus on the config parameters of this component. See separate [KomMonitor docker repository](https://github.com/KomMonitor/docker) for full information on launching all KomMonitor components via docker.
 
 ```yml
 
@@ -165,13 +187,12 @@ services:
        - ENCRYPTION_ENABLED=false       # enable/disable encrypted data retrieval from Data Management service
        - ENCRYPTION_PASSWORD=password   # shared secret for data encryption - must be set equally within all supporting components
        - ENCRYPTION_IV_LENGTH_BYTE=16   # length of random initialization vector for encryption algorithm - must be set equally within all supporting components
-       - KEYCLOAK_ENABLED=false                                       # enable/disable role-based data access using Keycloak
+       - KEYCLOAK_ENABLED=true                                       # enable/disable role-based data access using Keycloak
        - KEYCLOAK_REALM=kommonitor                                    # Keycloak realm name
        - KEYCLOAK_AUTH_SERVER_URL=https://keycloak.fbg-hsbo.de/auth/  # Keycloak URL ending with "/auth/"
-       - KEYCLOAK_SSL_REQUIRED=external                               # Keycloak SSL setting; ["external", "none"]; default "external"
-       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler            # Keycloak client/resource name
-       - KEYCLOAK_PUBLIC_CLIENT=true                                  # Keycloak setting is public client - should be true
-       - KEYCLOAK_CONFIDENTIAL_PORT=0                                 # Keycloak setting confidential port - default is 0
+       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler               # Keycloak client/resource name
+       - KEYCLOAK_CLIENT_SECRET=keycloak-secret                       # keycloak client secret using access type confidential
+       - KOMMONITOR_ADMIN_ROLENAME=kommonitor-creator                 # name of kommonitor admin role within keycloak - default is 'kommonitor-creator'
        - KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler                    # Keycloak internal user name within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data 
        - KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler                # Keycloak internal user password within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data
 

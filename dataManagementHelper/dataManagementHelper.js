@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const encryptionHelper = require("./EncryptionHelperService");
-const keycloakHelper = require("../keycloakHelper/keycloakHelper");
+const keycloakHelper = require("kommonitor-keycloak-helper");
 
 const propertyName_targetIndicator = "indicatorId";
 const propertyName_indicatorId = "indicatorId";
@@ -16,7 +16,7 @@ const kommonitorDataManagementURL = process.env.KOMMONITOR_DATA_MANAGEMENT_URL_G
 async function fetchAllScriptsMetadata (){
     console.log("fetching script metadata array from KomMonitor data management API");
 
-    var config = await keycloakHelper.getKeycloakAxiosConfig();
+    var config = await keycloakHelper.requestAccessToken();
   
     //GET
     return await axios.get(kommonitorDataManagementURL + "/process-scripts", config)
@@ -33,7 +33,7 @@ async function fetchAllScriptsMetadata (){
 async function fetchAllIndicatorsMetadata (){
     console.log("fetching indicator metadata array from KomMonitor data management API");
 
-    var config = await keycloakHelper.getKeycloakAxiosConfig();
+    var config = await keycloakHelper.requestAccessToken();
   
     //GET
     return await axios.get(kommonitorDataManagementURL + "/indicators", config)
@@ -51,7 +51,7 @@ async function fetchAllIndicatorsMetadata (){
 async function fetchAllGeoresourcesMetadata (){
     console.log("fetching georesources metadata array from KomMonitor data management API");
 
-    var config = await keycloakHelper.getKeycloakAxiosConfig();
+    var config = await keycloakHelper.requestAccessToken();
   
     //GET
     return await axios.get(kommonitorDataManagementURL + "/georesources", config)

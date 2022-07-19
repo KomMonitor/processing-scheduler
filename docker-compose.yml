@@ -27,13 +27,12 @@ services:
        - ENCRYPTION_ENABLED=false       # enable/disable encrypted data retrieval from Data Management service
        - ENCRYPTION_PASSWORD=password   # shared secret for data encryption - must be set equally within all supporting components
        - ENCRYPTION_IV_LENGTH_BYTE=16   # length of random initialization vector for encryption algorithm - must be set equally within all supporting components
-       - KEYCLOAK_ENABLED=false                                       # enable/disable role-based data access using Keycloak
+       - KEYCLOAK_ENABLED=true                                       # enable/disable role-based data access using Keycloak
        - KEYCLOAK_REALM=kommonitor                                    # Keycloak realm name
        - KEYCLOAK_AUTH_SERVER_URL=https://keycloak.fbg-hsbo.de/auth/  # Keycloak URL ending with "/auth/"
-       - KEYCLOAK_SSL_REQUIRED=external                               # Keycloak SSL setting; ["external", "none"]; default "external"
-       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler            # Keycloak client/resource name
-       - KEYCLOAK_PUBLIC_CLIENT=true                                  # Keycloak setting is public client - should be true
-       - KEYCLOAK_CONFIDENTIAL_PORT=0                                 # Keycloak setting confidential port - default is 0
+       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler               # Keycloak client/resource name
+       - KEYCLOAK_CLIENT_SECRET=keycloak-secret                       # keycloak client secret using access type confidential
+       - KOMMONITOR_ADMIN_ROLENAME=kommonitor-creator                 # name of kommonitor admin role within keycloak - default is 'kommonitor-creator'
        - KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler                    # Keycloak internal user name within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data 
        - KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler                # Keycloak internal user password within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data
 

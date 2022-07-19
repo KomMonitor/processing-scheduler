@@ -3,6 +3,7 @@ This NodeJS project is part of the [KomMonitor](http://kommonitor.de) spatial da
 
 ## Quick Links And Further Information on KomMonitor
    - [DockerHub repositories of KomMonitor Stack](https://hub.docker.com/orgs/kommonitor/repositories)
+   - [KomMonitor Docker Repository including default docker-compose templates and default resource files for keycloak and KomMonitor stack](https://github.com/KomMonitor/docker)
    - [Github Repositories of KomMonitor Stack](https://github.com/KomMonitor)
    - [Github Wiki for KomMonitor Guidance and central Documentation](https://github.com/KomMonitor/KomMonitor-Docs/wiki)
    - [Technical Guidance](https://github.com/KomMonitor/KomMonitor-Docs/wiki/Technische-Dokumentation) and [Deployment Information](https://github.com/KomMonitor/KomMonitor-Docs/wiki/Setup-Guide) for complete KomMonitor stack on Github Wiki
@@ -42,12 +43,12 @@ Ideas to improve the **Processing Scheduler** could be:
 KomMonitor Processing Scheduler requires 
    - a running instance of KomMonitor **Data Management** for main data retrieval
    - a running instance of **Processing Engine** to trigger the computaton of target indicator timeseries elements for various spatial units
-   - an optional and configurable connection to a running **Keycloak** server, if role-based data access is activated via configuration of KomMonitor stack
+   - Since version 2.0.0 KomMonitor Client Config service requires **Keycloak** for authenticated access to future POST requests (currently scheduler has no REST endpoint, but will have in future releases). Only KomMonitor administrators shall be allowed to call the POST endpoints of this service. Within the Keycloak realm the **processing scheduler** component must be integrated as a realm client with access type ***confidential*** so that a keycloak secret can be retrieved and configured.
 
 
 ## Exemplar docker-compose File with explanatory comments
 
-Only contains subset of whole KomMonitor stack to focus on the config parameters of this component
+Only contains subset of whole KomMonitor stack to focus on the config parameters of this component. Only contains subset of whole KomMonitor stack to focus on the config parameters of this component. See separate [KomMonitor docker repository](https://github.com/KomMonitor/docker) for full information on launching all KomMonitor components via docker.
 
 ```yml
 
@@ -80,13 +81,12 @@ services:
        - ENCRYPTION_ENABLED=false       # enable/disable encrypted data retrieval from Data Management service
        - ENCRYPTION_PASSWORD=password   # shared secret for data encryption - must be set equally within all supporting components
        - ENCRYPTION_IV_LENGTH_BYTE=16   # length of random initialization vector for encryption algorithm - must be set equally within all supporting components
-       - KEYCLOAK_ENABLED=false                                       # enable/disable role-based data access using Keycloak
+       - KEYCLOAK_ENABLED=true                                       # enable/disable role-based data access using Keycloak
        - KEYCLOAK_REALM=kommonitor                                    # Keycloak realm name
        - KEYCLOAK_AUTH_SERVER_URL=https://keycloak.fbg-hsbo.de/auth/  # Keycloak URL ending with "/auth/"
-       - KEYCLOAK_SSL_REQUIRED=external                               # Keycloak SSL setting; ["external", "none"]; default "external"
-       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler            # Keycloak client/resource name
-       - KEYCLOAK_PUBLIC_CLIENT=true                                  # Keycloak setting is public client - should be true
-       - KEYCLOAK_CONFIDENTIAL_PORT=0                                 # Keycloak setting confidential port - default is 0
+       - KEYCLOAK_RESOURCE=kommonitor-processing-scheduler               # Keycloak client/resource name
+       - KEYCLOAK_CLIENT_SECRET=keycloak-secret                       # keycloak client secret using access type confidential
+       - KOMMONITOR_ADMIN_ROLENAME=kommonitor-creator                 # name of kommonitor admin role within keycloak - default is 'kommonitor-creator'
        - KEYCLOAK_ADMIN_RIGHTS_USER_NAME=scheduler                    # Keycloak internal user name within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data 
        - KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD=scheduler                # Keycloak internal user password within kommonitor-realm that has administrator role associated in order to grant rigths to fetch all data
 

@@ -1,5 +1,5 @@
 const axios = require("axios");
-const keycloakHelper = require("../keycloakHelper/keycloakHelper");
+const keycloakHelper = require("kommonitor-keycloak-helper");
 
 // aquire connection details to KomMonitor data management api instance from environment variables
 // construct fixed starting URL to make requests against running KomMonitor data management api
@@ -64,7 +64,7 @@ async function triggerDefaultComputationForTimestamps(scriptMetadata, targetTime
 
     var postBody = buildPostBody(scriptMetadata, targetTimestamps);
 
-    var config = await keycloakHelper.getKeycloakAxiosConfig();
+    var config = await keycloakHelper.requestAccessToken();
 
     return await axios.post(kommonitorProcessingEngineURL + "/script-engine/defaultIndicatorComputation", postBody, config)
       .then(response => {
