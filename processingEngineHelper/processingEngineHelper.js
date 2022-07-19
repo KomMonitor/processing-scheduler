@@ -1,5 +1,7 @@
 const axios = require("axios");
-const keycloakHelper = require("kommonitor-keycloak-helper");
+var keycloakHelper = require("kommonitor-keycloak-helper");
+ keycloakHelper.initKeycloakHelper(process.env.KEYCLOAK_AUTH_SERVER_URL, process.env.KEYCLOAK_REALM, process.env.KEYCLOAK_RESOURCE, process.env.KEYCLOAK_CLIENT_SECRET, process.env.KEYCLOAK_ADMIN_RIGHTS_USER_NAME, process.env.KEYCLOAK_ADMIN_RIGHTS_USER_PASSWORD, process.env.KOMMONITOR_ADMIN_ROLENAME);
+
 
 // aquire connection details to KomMonitor data management api instance from environment variables
 // construct fixed starting URL to make requests against running KomMonitor data management api
