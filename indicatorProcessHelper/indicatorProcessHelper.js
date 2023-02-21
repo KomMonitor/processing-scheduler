@@ -244,7 +244,7 @@ function anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray){
 function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTargetIndicatorTimestamps, baseIndicatorsMetadataArray, updateInterval){
 
     if(anyBaseIndicatorHasNoApplicableDates(baseIndicatorsMetadataArray)){
-        console.log("At least one baseIndicator has no applicableDates. Hence no indicaor computation can be triggered.");
+        console.log("At least one baseIndicator has no applicableDates. Hence no indicator computation can be triggered.");
         return [];
     }
 
@@ -271,6 +271,30 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
         nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
      } 
 
+    console.log("Identified " + missingTimestampsArray.length + " missing timestamp candidates. Filter out those that are not present for all participating indicators:\n" + missingTimestampsArray);
+
+    // filter out any timestamps that are not actually present in all participating indicator datatsets
+    // because they cannot be computed anyway as their dates cannot be compared
+    missingTimestampsArray = filterForCommonDates(missingTimestampsArray, baseIndicatorsMetadataArray);
+
+    console.log("Identified " + missingTimestampsArray.length + " possible missing timestamps after filter:\n" + missingTimestampsArray);
+
+    return missingTimestampsArray;
+}
+
+// filter out any timestamps that are not actually present in all participating indicator datatsets
+// because they cannot be computed anyway as their dates cannot be compared
+function filterForCommonDates(missingTimestampsArray, baseIndicatorsMetadataArray){
+    for (let index = 0; index < missingTimestampsArray.length; index++) {
+        let missingTimestampCandidate = missingTimestampsArray[index];
+        for (const baseIndicatorsMetadata of baseIndicatorsMetadataArray) {
+            if(! baseIndicatorsMetadata.applicableDates.includes(missingTimestampCandidate)){
+                missingTimestampsArray.splice(index, 1);
+                break;
+            }   
+        }   
+    }
+    
     return missingTimestampsArray;
 }
 
