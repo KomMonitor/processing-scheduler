@@ -385,7 +385,16 @@ function getEarliestGeoresourceStartDate(georesource_timePeriods){
 
 function getLatestGeoresourceEndDate(georesource_timePeriods){
     var latestEndDate;
+
+    // if there are multiple end date entries then identify the latest
+    // if there is any endDate == null/undefined then return null/undefined
+
     for (const timePeriod of georesource_timePeriods) {
+
+        if(timePeriod.endDate == null || timePeriod.endDate == undefined){
+            return null;
+        }
+
         if(! latestEndDate){
             if(timePeriod.endDate){
                 latestEndDate = new Date(timePeriod.endDate);
