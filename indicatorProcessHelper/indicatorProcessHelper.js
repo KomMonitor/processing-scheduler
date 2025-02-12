@@ -248,28 +248,44 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
         return [];
     }
 
-    var earliestCommonDate = findEarliestCommonDate(baseIndicatorsMetadataArray);
-    var latestCommonDate = findLatestCommonDate(baseIndicatorsMetadataArray);
+    // var earliestCommonDate = findEarliestCommonDate(baseIndicatorsMetadataArray);
+    // var latestCommonDate = findLatestCommonDate(baseIndicatorsMetadataArray);
 
     var overwritingBeginDate = getOverwritingBeginDate(existingTargetIndicatorTimestamps);
 
-    if(! earliestCommonDate || earliestCommonDate == null || !latestCommonDate || latestCommonDate == null){
-        return [];
-    }
+    // if(! earliestCommonDate || earliestCommonDate == null || !latestCommonDate || latestCommonDate == null){
+    //     return [];
+    // }
 
-    if (!existingTargetIndicatorTimestamps.includes(earliestCommonDate) || (TRIGGER_PAST_VALUES && new Date(earliestCommonDate) >= overwritingBeginDate)){
-        missingTimestampsArray.push(earliestCommonDate);
-    }
+    // if (!existingTargetIndicatorTimestamps.includes(earliestCommonDate) || (TRIGGER_PAST_VALUES && new Date(earliestCommonDate) >= overwritingBeginDate)){
+    //     missingTimestampsArray.push(earliestCommonDate);
+    // }
 
-    var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
+    // var nextCandidateTimestamp = getNextFutureTimestampCandidate(earliestCommonDate, updateInterval);
 
-     while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
-        if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && (new Date(nextCandidateTimestamp) >= overwritingBeginDate ) )){
-          missingTimestampsArray.push(nextCandidateTimestamp);
-        }
+    //  while((new Date(nextCandidateTimestamp) <= (new Date(latestCommonDate)))){
+    //     if (!existingTargetIndicatorTimestamps.includes(nextCandidateTimestamp) || (TRIGGER_PAST_VALUES && (new Date(nextCandidateTimestamp) >= overwritingBeginDate ) )){
+    //       missingTimestampsArray.push(nextCandidateTimestamp);
+    //     }
                    
-        nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
-     } 
+    //     nextCandidateTimestamp = getNextFutureTimestampCandidate(nextCandidateTimestamp, updateInterval);
+    //  } 
+
+    // iterate over all base Indicators and add all dates available
+    let possibleDatesMap = new Map();
+    for (const baseIndicatorMetadata of baseIndicatorsMetadataArray) {
+        if(baseIndicatorMetadata.applicableDates && baseIndicatorMetadata.applicableDates.length > 0){            
+
+            for (const dateCandidate of baseIndicatorMetadata.applicableDates) {
+                if (!existingTargetIndicatorTimestamps.includes(dateCandidate) || (TRIGGER_PAST_VALUES && (new Date(dateCandidate) >= overwritingBeginDate ) )){
+                    possibleDatesMap.set(dateCandidate, dateCandidate);
+                }
+                
+            }
+        }
+    }
+
+    missingTimestampsArray = Array.from(possibleDatesMap.keys());
 
     console.log("Identified " + missingTimestampsArray.length + " missing timestamp candidates. Filter out those that are not present for all participating indicators:\n" + missingTimestampsArray);
 
