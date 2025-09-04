@@ -301,17 +301,16 @@ function appendMissingBaseIndicatorTimestamps(missingTimestampsArray, existingTa
 // filter out any timestamps that are not actually present in all participating indicator datatsets
 // because they cannot be computed anyway as their dates cannot be compared
 function filterForCommonDates(missingTimestampsArray, baseIndicatorsMetadataArray){
-    for (let index = 0; index < missingTimestampsArray.length; index++) {
-        let missingTimestampCandidate = missingTimestampsArray[index];
-        for (const baseIndicatorsMetadata of baseIndicatorsMetadataArray) {
+  let filteredTimestamps = missingTimestampsArray.filter(function(missingTimestampCandidate){
+    for (const baseIndicatorsMetadata of baseIndicatorsMetadataArray) {
             if(! baseIndicatorsMetadata.applicableDates.includes(missingTimestampCandidate)){
-                missingTimestampsArray.splice(index, 1);
-                break;
+                return false;
             }   
-        }   
-    }
+        }  
+       return true;  
+  });
     
-    return missingTimestampsArray;
+    return filteredTimestamps;
 }
 
 function getOverwritingBeginDate(existingTargetIndicatorTimestamps) {
